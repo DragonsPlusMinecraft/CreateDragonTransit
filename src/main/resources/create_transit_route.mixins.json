@@ -1,9 +1,9 @@
 {
   "required": true,
   "priority": 1100,
-  "package": "com.example.examplemod.mixin",
+  "package": "plus.dragons.createtransitroute.mixin",
   "compatibilityLevel": "JAVA_16",
-  "refmap": "examplemod.refmap.json",
+  "refmap": "create_transit_route.refmap.json",
   "mixins": [],
   "client": [],
   "injectors": {
