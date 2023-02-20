@@ -1,4 +1,4 @@
-package plus.dragons.createtransitroute.content.logistics.routes;
+package plus.dragons.createtransitroute.content.logistics.transit;
 
 import com.simibubi.create.content.logistics.trains.entity.Train;
 import com.simibubi.create.content.logistics.trains.entity.TrainPacket;
@@ -17,16 +17,16 @@ import plus.dragons.createtransitroute.TransitRouteClient;
 
 import java.util.*;
 
-public class GlobalRouteManager {
+public class GlobalTransitManager {
 
-    public Map<UUID,GlobalTransitStation> stations = new HashMap<>();
-    public Map<UUID, GlobalTransitLine> lines = new HashMap<>();
+    public Map<UUID, TransitStation> stations = new HashMap<>();
+    public Map<UUID, TransitLine> lines = new HashMap<>();
     GlobalRouteSync sync;
 
     RoutesSavedData savedData;
 
 
-    public GlobalRouteManager() {
+    public GlobalTransitManager() {
         cleanUp();
     }
 
@@ -74,21 +74,21 @@ public class GlobalRouteManager {
         sync = new GlobalRouteSync();
     }
 
-    public void markTracksDirty() {
+    public void markDirty() {
         if (savedData != null)
             savedData.setDirty();
     }
 
-    public GlobalRouteManager sided(LevelAccessor level) {
+    public GlobalTransitManager sided(LevelAccessor level) {
         if (level != null && !level.isClientSide())
             return this;
-        MutableObject<GlobalRouteManager> m = new MutableObject<>();
+        MutableObject<GlobalTransitManager> m = new MutableObject<>();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> clientManager(m));
         return m.getValue();
     }
 
     @OnlyIn(Dist.CLIENT)
-    private void clientManager(MutableObject<GlobalRouteManager> m) {
+    private void clientManager(MutableObject<GlobalTransitManager> m) {
         m.setValue(TransitRouteClient.ROUTES);
     }
 }

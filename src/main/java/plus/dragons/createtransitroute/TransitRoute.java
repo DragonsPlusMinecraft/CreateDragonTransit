@@ -11,7 +11,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import plus.dragons.createdragonlib.init.SafeRegistrate;
 import plus.dragons.createdragonlib.lang.Lang;
-import plus.dragons.createtransitroute.content.logistics.routes.GlobalRouteManager;
+import plus.dragons.createtransitroute.content.logistics.transit.GlobalTransitManager;
 
 @Mod(TransitRoute.ID)
 public class TransitRoute
@@ -21,7 +21,7 @@ public class TransitRoute
     public static final String NAME = "Create Transit Route";
     public static final CreateRegistrate REGISTRATE = new SafeRegistrate(ID);
     public static final Lang LANG = new Lang(ID);
-    public static GlobalRouteManager ROUTES = new GlobalRouteManager();
+    public static GlobalTransitManager ROUTES = new GlobalTransitManager();
 
 
     public TransitRoute() {

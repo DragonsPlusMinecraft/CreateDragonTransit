@@ -1,4 +1,4 @@
-package plus.dragons.createtransitroute.content.logistics.routes;
+package plus.dragons.createtransitroute.content.logistics.transit;
 
 import java.util.Queue;
 
