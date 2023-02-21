@@ -212,17 +212,15 @@ public class TransitLine {
             return platformCache.apply(levelAccessor);
         }
 
-        public boolean addPlatform(TransitStation.StationPlatform platform){
-            if(!platform.bindLineSegment(id)) return false;
-            this.stations.add(Pair.of(platform.getStation().getId(),id));
+        public boolean attachPlatform(UUID stationID,UUID platformID){
+            this.stations.add(Pair.of(stationID,platformID));
             flushPlatformsCache();
             return true;
         }
 
-        public void removePlatform(TransitStation.StationPlatform platform){
-            if(stations.stream().map(Pair::getSecond).toList().contains(platform.getId())){
-                platform.unbindLineSegment();
-                stations.removeIf(pair -> platform.getId().equals(pair.getSecond()));
+        public void detachPlatform(UUID platformID){
+            if(stations.stream().map(Pair::getSecond).toList().contains(platformID)){
+                stations.removeIf(pair -> platformID.equals(pair.getSecond()));
                 flushPlatformsCache();
             }
         }

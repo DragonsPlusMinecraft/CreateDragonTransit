@@ -2,6 +2,7 @@ package plus.dragons.createtransitroute.content.logistics.transit;
 
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.utility.NBTHelper;
+import com.simibubi.create.foundation.utility.Pair;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.LevelAccessor;
@@ -69,7 +70,9 @@ public class TransitStation {
             public List<TransitLine.LineSegment> apply(LevelAccessor level) {
                 if (!initialized) {
                     for(var platform: platforms){
-                        cache.add(platform.getLineSegment(level));
+                        var lineSeg = platform.getLineSegment(level);
+                        if(lineSeg!=null)
+                            cache.add(platform.getLineSegment(level));
                     }
                     initialized = true;
                 }
@@ -79,12 +82,23 @@ public class TransitStation {
 
     }
 
-    private void addAllPlatform(List<StationPlatform> platforms){
-        this.platforms.addAll(platforms);
-    }
-
     private void createPlatform(String name){
         platforms.add(new StationPlatform(name));
+    }
+
+    @Nullable
+    public StationPlatform getPlatform(UUID platformID){
+        return platforms.stream().filter(platform1 -> platform1.id.equals(platformID)).findFirst().orElseGet(null);
+    }
+
+    public void removePlatform(UUID platformID){
+        platforms.removeIf(platform1 -> platform1.id.equals(platformID));
+        flushLinesCache();
+    }
+
+
+    private void addAllPlatform(List<StationPlatform> platforms){
+        this.platforms.addAll(platforms);
     }
 
     private StationPlatform createPlatformFromTag(CompoundTag tag){
@@ -124,7 +138,7 @@ public class TransitStation {
         private String name;
         private boolean maintaining;
         @Nullable
-        private UUID line = null;
+        private Pair<UUID,UUID> line = null;
         private Function<LevelAccessor,TransitLine.LineSegment> lineCache;
 
         private StationPlatform(String name) {
@@ -137,7 +151,9 @@ public class TransitStation {
             this.id = tag.getUUID("ID");
             this.name = tag.getString("Name");
             this.maintaining = tag.getBoolean("Maintaining");
-            this.line = tag.contains("Line")? tag.getUUID("Line"): null;
+            if(tag.contains("Line")){
+                this.line = Pair.of(tag.getUUID("Line"),tag.getUUID("Segment"));
+            } else this.line =  null;
             flushLineCache();
         }
 
@@ -146,7 +162,10 @@ public class TransitStation {
             ret.putUUID("ID",id);
             ret.putString("Name",name);
             ret.putBoolean("Maintaining",maintaining);
-            if(line!=null) ret.putUUID("Line",line);
+            if(line!=null){
+                ret.putUUID("Line",line.getFirst());
+                ret.putUUID("Segment",line.getSecond());
+            }
             return ret;
         }
 
@@ -161,10 +180,9 @@ public class TransitStation {
                         return null;
                     if (cache == null) {
                         var retrieved = TransitRoute.ROUTES.sided(level).lines.values().stream().flatMap(line -> line.getSegments().stream())
-                                .filter(segment -> segment.getId().equals(line)).findFirst().orElse(null);
+                                .filter(segment -> segment.getId().equals(line.getSecond())).findFirst().orElse(null);
                         if (retrieved == null) {
-                            LOGGER.error("Cannot find LineSegment by UUID " + line + " in all Lines, something must goes wrong! LineSegment attached to this platform " + id + " has been detached!");
-                            unbindLineSegment();
+                            LOGGER.error("Cannot find LineSegment instance by UUID " + line.getSecond() + " in all Lines, something must goes wrong!");
                             return null;
                         }
                         cache = new WeakReference<>(retrieved);
@@ -205,9 +223,9 @@ public class TransitStation {
             return TransitStation.this;
         }
 
-        public boolean bindLineSegment(UUID line){
+        public boolean bindLineSegment(UUID lineID, UUID segmentID){
             if(this.line!=null) return false;
-            this.line = line;
+            this.line = Pair.of(lineID,segmentID);
             flushLineCache();
             return true;
         }
@@ -215,12 +233,6 @@ public class TransitStation {
         public void unbindLineSegment(){
             this.line = null;
             flushLineCache();
-        }
-
-        public void remove(){
-            unbindLineSegment();
-            TransitStation.this.platforms.remove(this);
-            TransitStation.this.flushLinesCache();
         }
     }
 

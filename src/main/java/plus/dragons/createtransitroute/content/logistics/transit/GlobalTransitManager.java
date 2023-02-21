@@ -1,17 +1,11 @@
 package plus.dragons.createtransitroute.content.logistics.transit;
 
-import com.simibubi.create.content.logistics.trains.entity.Train;
-import com.simibubi.create.content.logistics.trains.entity.TrainPacket;
-import com.simibubi.create.content.logistics.trains.management.edgePoint.signal.SignalEdgeGroup;
-import com.simibubi.create.foundation.networking.AllPackets;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.PacketDistributor;
 import org.apache.commons.lang3.mutable.MutableObject;
 import plus.dragons.createtransitroute.TransitRouteClient;
 
@@ -22,7 +16,6 @@ public class GlobalTransitManager {
     public Map<UUID, TransitStation> stations = new HashMap<>();
     public Map<UUID, TransitLine> lines = new HashMap<>();
     GlobalRouteSync sync;
-
     RoutesSavedData savedData;
 
 
@@ -31,7 +24,7 @@ public class GlobalTransitManager {
     }
 
     public void playerLogin(Player player) {
-        if (player instanceof ServerPlayer serverPlayer) {
+        /*if (player instanceof ServerPlayer serverPlayer) {
             loadRouteData(serverPlayer.getServer());
             trackNetworks.values()
                     .forEach(g -> sync.sendFullGraphTo(g, serverPlayer));
@@ -46,8 +39,10 @@ public class GlobalTransitManager {
             for (Train train : trains.values())
                 AllPackets.channel.send(PacketDistributor.PLAYER.with(() -> serverPlayer),
                         new TrainPacket(train, true));
-        }
+        }*/
     }
+
+
 
     public void playerLogout(Player player) {}
 
