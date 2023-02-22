@@ -17,24 +17,24 @@ import java.util.function.Function;
 public class TransitStation {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final UUID id;
-    private String name;
-    private final List<StationPlatform> platforms;
+    private final Pair<String,String> names;
+    private final List<Platform> platforms;
     private final UUID owner;
     private boolean isPrivate;
-    private Function<LevelAccessor,List<TransitLine.LineSegment>> linesCache;
+    private Function<LevelAccessor,List<TransitLine.Segment>> linesCache;
 
     public TransitStation(String name, UUID owner) {
         this.id = UUID.randomUUID();
-        this.name = name;
+        this.names = Pair.of(name,"");
         this.platforms = new ArrayList<>();
         this.owner = owner;
         this.isPrivate = true;
         flushLinesCache();
     }
 
-    private TransitStation(UUID id, String name, UUID owner, boolean isPrivate) {
+    private TransitStation(UUID id, String name, String translatedName, UUID owner, boolean isPrivate) {
         this.id = id;
-        this.name = name;
+        this.names = Pair.of(name,translatedName);
         this.platforms = new ArrayList<>();
         this.owner = owner;
         this.isPrivate = isPrivate;
@@ -43,8 +43,9 @@ public class TransitStation {
     public CompoundTag write(){
         CompoundTag ret = new CompoundTag();
         ret.putUUID("UUID",id);
-        ret.putString("Name",name);
-        ret.put("Platforms", NBTHelper.writeCompoundList(platforms, StationPlatform::write));
+        ret.putString("Name", names.getFirst());
+        ret.putString("TranslatedName", names.getSecond());
+        ret.put("Platforms", NBTHelper.writeCompoundList(platforms, Platform::write));
         ret.putUUID("Owner",owner);
         ret.putBoolean("IsPrivate",isPrivate);
         return ret;
@@ -53,9 +54,10 @@ public class TransitStation {
     public static TransitStation read(CompoundTag tag){
         var id = tag.getUUID("UUID");
         var name = tag.getString("Name");
+        var translatedName = tag.getString("TranslatedName");
         var owner = tag.getUUID("Owner");
         var isPrivate = tag.getBoolean("IsPrivate");
-        var ret = new TransitStation(id,name,owner,isPrivate);
+        var ret = new TransitStation(id,name,translatedName,owner,isPrivate);
         ret.addAllPlatform(NBTHelper.readCompoundList(tag.getList("Platforms", Tag.TAG_COMPOUND), ret::createPlatformFromTag));
         ret.flushLinesCache();
         return ret;
@@ -63,11 +65,11 @@ public class TransitStation {
 
     private void flushLinesCache(){
         this.linesCache = new Function<>() {
-            final List<TransitLine.LineSegment> cache = new ArrayList<>();
+            final List<TransitLine.Segment> cache = new ArrayList<>();
             boolean initialized = false;
 
             @Override
-            public List<TransitLine.LineSegment> apply(LevelAccessor level) {
+            public List<TransitLine.Segment> apply(LevelAccessor level) {
                 if (!initialized) {
                     for(var platform: platforms){
                         var lineSeg = platform.getLineSegment(level);
@@ -82,12 +84,12 @@ public class TransitStation {
 
     }
 
-    private void createPlatform(String name){
-        platforms.add(new StationPlatform(name));
+    private void createPlatform(){
+        platforms.add(new Platform());
     }
 
     @Nullable
-    public StationPlatform getPlatform(UUID platformID){
+    public Platform getPlatform(UUID platformID){
         return platforms.stream().filter(platform1 -> platform1.id.equals(platformID)).findFirst().orElseGet(null);
     }
 
@@ -97,12 +99,12 @@ public class TransitStation {
     }
 
 
-    private void addAllPlatform(List<StationPlatform> platforms){
+    private void addAllPlatform(List<Platform> platforms){
         this.platforms.addAll(platforms);
     }
 
-    private StationPlatform createPlatformFromTag(CompoundTag tag){
-        return new StationPlatform(tag);
+    private Platform createPlatformFromTag(CompoundTag tag){
+        return new Platform(tag);
     }
 
     public UUID getId() {
@@ -110,11 +112,19 @@ public class TransitStation {
     }
 
     public String getName() {
-        return name;
+        return names.getFirst();
     }
 
-    public List<StationPlatform> getPlatforms() {
+    public String getTranslatedName() {
+        return names.getSecond();
+    }
+
+    public List<Platform> getPlatforms() {
         return platforms;
+    }
+
+    public List<TransitLine.Segment> getAllLineSegments(LevelAccessor level){
+        return linesCache.apply(level);
     }
 
     public UUID getOwner() {
@@ -126,30 +136,32 @@ public class TransitStation {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.names.setFirst(name);
+    }
+
+    public void setTranslatedName(String name) {
+        this.names.setSecond(name);
     }
 
     public void setPrivate(boolean aPrivate) {
         isPrivate = aPrivate;
     }
 
-    public class StationPlatform{
+    public class Platform {
         private final UUID id;
-        private String name;
         private boolean maintaining;
         @Nullable
         private Pair<UUID,UUID> line = null;
-        private Function<LevelAccessor,TransitLine.LineSegment> lineCache;
+        private Function<LevelAccessor, TransitLine.Segment> lineCache;
 
-        private StationPlatform(String name) {
+        private Platform() {
             this.id = UUID.randomUUID();
-            this.name = name;
             this.maintaining = false;
             flushLineCache();
         }
-        private StationPlatform(CompoundTag tag) {
+
+        private Platform(CompoundTag tag) {
             this.id = tag.getUUID("ID");
-            this.name = tag.getString("Name");
             this.maintaining = tag.getBoolean("Maintaining");
             if(tag.contains("Line")){
                 this.line = Pair.of(tag.getUUID("Line"),tag.getUUID("Segment"));
@@ -160,7 +172,6 @@ public class TransitStation {
         public CompoundTag write(){
             CompoundTag ret = new CompoundTag();
             ret.putUUID("ID",id);
-            ret.putString("Name",name);
             ret.putBoolean("Maintaining",maintaining);
             if(line!=null){
                 ret.putUUID("Line",line.getFirst());
@@ -171,11 +182,11 @@ public class TransitStation {
 
         private void flushLineCache(){
             this.lineCache = new Function<>() {
-                WeakReference<TransitLine.LineSegment> cache = null;
+                WeakReference<TransitLine.Segment> cache = null;
 
                 @Nullable
                 @Override
-                public TransitLine.LineSegment apply(LevelAccessor level) {
+                public TransitLine.Segment apply(LevelAccessor level) {
                     if (line == null)
                         return null;
                     if (cache == null) {
@@ -193,15 +204,6 @@ public class TransitStation {
 
         }
 
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
         public boolean isMaintaining() {
             return maintaining;
         }
@@ -215,7 +217,7 @@ public class TransitStation {
         }
 
         @Nullable
-        public TransitLine.LineSegment getLineSegment(LevelAccessor level) {
+        public TransitLine.Segment getLineSegment(LevelAccessor level) {
             return lineCache.apply(level);
         }
 

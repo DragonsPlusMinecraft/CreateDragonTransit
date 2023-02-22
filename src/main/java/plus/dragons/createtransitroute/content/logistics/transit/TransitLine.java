@@ -18,16 +18,16 @@ import java.util.function.Function;
 public class TransitLine {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final UUID id;
-    private String name;
+    private final Pair<String,String> names;
     private String code;
     private String color;
-    private final List<LineSegment> segments;
+    private final List<Segment> segments;
     private final UUID owner;
     private Ownership ownership;
 
     public TransitLine(String name, String color, UUID owner) {
         this.id = UUID.randomUUID();
-        this.name = name;
+        this.names = Pair.of(name,"");
         this.code = "";
         this.color = color;
         this.segments = new ArrayList<>();
@@ -35,9 +35,9 @@ public class TransitLine {
         this.ownership = Ownership.PRIVATE;
     }
 
-    private TransitLine(UUID id, String name, String code, String color, UUID owner, Ownership ownership) {
+    private TransitLine(UUID id, String name, String translatedName, String code, String color, UUID owner, Ownership ownership) {
         this.id = id;
-        this.name = name;
+        this.names = Pair.of(name,translatedName);
         this.code = code;
         this.color = color;
         this.segments = new ArrayList<>();
@@ -45,40 +45,42 @@ public class TransitLine {
         this.ownership = ownership;
     }
 
-    private void addAllSegments(List<LineSegment> segments){
+    private void addAllSegments(List<Segment> segments){
         this.segments.addAll(segments);
     }
 
     public CompoundTag write(){
         CompoundTag ret = new CompoundTag();
         ret.putUUID("UUID",id);
-        ret.putString("Name",name);
+        ret.putString("Name", names.getFirst());
+        ret.putString("TranslatedName", names.getSecond());
         ret.putString("Code",code);
         ret.putString("Color",color);
         ret.putUUID("Owner",owner);
         NBTHelper.writeEnum(ret,"Ownership",ownership);
-        ret.put("Segments", NBTHelper.writeCompoundList(segments, LineSegment::write));
+        ret.put("Segments", NBTHelper.writeCompoundList(segments, Segment::write));
         return ret;
     }
 
     public static TransitLine read(CompoundTag tag){
         var id = tag.getUUID("UUID");
         var name = tag.getString("Name");
+        var translatedName = tag.getString("TranslatedName");
         var code = tag.getString("Code");
         var color = tag.getString("Color");
         var owner = tag.getUUID("Owner");
         var ownership = NBTHelper.readEnum(tag,"Ownership",Ownership.class);
-        var ret = new TransitLine(id,name,code,color,owner,ownership);
+        var ret = new TransitLine(id,name,translatedName,code,color,owner,ownership);
         ret.addAllSegments(NBTHelper.readCompoundList(tag.getList("Segments", Tag.TAG_COMPOUND), ret::createSegmentFromTag));
         return ret;
     }
 
-    private LineSegment createSegmentFromTag(CompoundTag tag){
-        return new LineSegment(tag);
+    private Segment createSegmentFromTag(CompoundTag tag){
+        return new Segment(tag);
     }
 
-    private LineSegment createLineSegment(String name){
-        var ret =  new LineSegment(name);
+    private Segment createLineSegment(String name){
+        var ret =  new Segment(name);
         segments.add(ret);
         return ret;
     }
@@ -88,7 +90,11 @@ public class TransitLine {
     }
 
     public String getName() {
-        return name;
+        return names.getFirst();
+    }
+
+    public String getTranslatedName() {
+        return names.getSecond();
     }
 
     public String getCode() {
@@ -99,7 +105,7 @@ public class TransitLine {
         return color;
     }
 
-    public List<LineSegment> getSegments() {
+    public List<Segment> getSegments() {
         return segments;
     }
 
@@ -112,7 +118,11 @@ public class TransitLine {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.names.setFirst(name);
+    }
+
+    public void setTranslatedName(String name) {
+        this.names.setSecond(name);
     }
 
     public void setCode(String code) {
@@ -134,26 +144,27 @@ public class TransitLine {
         SECRET
     }
 
-    public class LineSegment{
+    public class Segment {
         private final UUID id;
-        private String name;
+
+        private final Pair<String,String> names;
         private final List<Pair<UUID,UUID>> stations;
         private boolean maintaining;
         private boolean emergency;
-        private Function<LevelAccessor, List<TransitStation.StationPlatform>> platformCache;
+        private Function<LevelAccessor, List<TransitStation.Platform>> platformCache;
 
-        private LineSegment(String name) {
+        private Segment(String name) {
             this.id = UUID.randomUUID();
-            this.name = name;
+            this.names = Pair.of(name,"");
             this.stations = new ArrayList<>();
             this.maintaining = true;
             this.emergency = false;
             flushPlatformsCache();
         }
 
-        public LineSegment(CompoundTag tag) {
+        public Segment(CompoundTag tag) {
             this.id = tag.getUUID("Id");
-            this.name = tag.getString("Name");
+            this.names = Pair.of(tag.getString("Name"),tag.getString("TranslatedName"));
             this.stations = NBTHelper.readCompoundList(tag.getList("Stations", Tag.TAG_COMPOUND),
                     compoundTag -> Pair.of(compoundTag.getUUID("ID"),compoundTag.getUUID("Platform")));
             this.maintaining = tag.getBoolean("Maintaining");
@@ -165,7 +176,8 @@ public class TransitLine {
         public CompoundTag write(){
             CompoundTag ret = new CompoundTag();
             ret.putUUID("Id",id);
-            ret.putString("Name",name);
+            ret.putString("Name",names.getFirst());
+            ret.putString("TranslatedName",names.getSecond());
             ret.putBoolean("Maintaining",maintaining);
             ret.putBoolean("Emergency",emergency);
             ret.put("Stations", NBTHelper.writeCompoundList(stations, pair -> {
@@ -179,11 +191,11 @@ public class TransitLine {
 
         private void flushPlatformsCache(){
             this.platformCache = new Function<>() {
-                final List<TransitStation.StationPlatform> cache = new ArrayList<>();
+                final List<TransitStation.Platform> cache = new ArrayList<>();
                 boolean initialized = false;
 
                 @Override
-                public List<TransitStation.StationPlatform> apply(LevelAccessor level) {
+                public List<TransitStation.Platform> apply(LevelAccessor level) {
                     if (!initialized) {
                         for(var pair:stations){
                             var station = TransitRoute.ROUTES.sided(level).stations.values().stream()
@@ -208,7 +220,7 @@ public class TransitLine {
 
         }
 
-        public List<TransitStation.StationPlatform> getPlatforms(LevelAccessor levelAccessor){
+        public List<TransitStation.Platform> getPlatforms(LevelAccessor levelAccessor){
             return platformCache.apply(levelAccessor);
         }
 
@@ -230,7 +242,11 @@ public class TransitLine {
         }
 
         public String getName() {
-            return name;
+            return names.getFirst();
+        }
+
+        public String getTranslatedName() {
+            return names.getSecond();
         }
 
         public void setMaintaining() {
@@ -252,7 +268,11 @@ public class TransitLine {
         }
 
         public void setName(String name) {
-            this.name = name;
+            this.names.setFirst(name);
+        }
+
+        public void setTranslatedName(String name) {
+            this.names.setSecond(name);
         }
 
         public void emergency() {
