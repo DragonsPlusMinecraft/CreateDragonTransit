@@ -18,7 +18,7 @@ public class RoutesSavedData extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag compoundTag) {
-        GlobalTransitManager routes = TransitRoute.ROUTES;
+        TransitNetworkManager routes = TransitRoute.ROUTES;
         compoundTag.put("Stations", NBTHelper.writeCompoundList(routes.stations.values(), TransitStation::write));
         compoundTag.put("Lines", NBTHelper.writeCompoundList(routes.lines.values(), TransitLine::write));
         return compoundTag;

@@ -18,7 +18,7 @@ public class TransitStation {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final UUID id;
     private final Pair<String,String> names;
-    private final List<Platform> platforms;
+    private final Map<UUID,Platform> platforms;
     private final UUID owner;
     private boolean isPrivate;
     private Function<LevelAccessor,List<TransitLine.Segment>> linesCache;
@@ -26,7 +26,7 @@ public class TransitStation {
     public TransitStation(String name, UUID owner) {
         this.id = UUID.randomUUID();
         this.names = Pair.of(name,"");
-        this.platforms = new ArrayList<>();
+        this.platforms = new HashMap<>();
         this.owner = owner;
         this.isPrivate = true;
         flushLinesCache();
@@ -35,7 +35,7 @@ public class TransitStation {
     private TransitStation(UUID id, String name, String translatedName, UUID owner, boolean isPrivate) {
         this.id = id;
         this.names = Pair.of(name,translatedName);
-        this.platforms = new ArrayList<>();
+        this.platforms = new HashMap<>();
         this.owner = owner;
         this.isPrivate = isPrivate;
     }
@@ -45,7 +45,7 @@ public class TransitStation {
         ret.putUUID("UUID",id);
         ret.putString("Name", names.getFirst());
         ret.putString("TranslatedName", names.getSecond());
-        ret.put("Platforms", NBTHelper.writeCompoundList(platforms, Platform::write));
+        ret.put("Platforms", NBTHelper.writeCompoundList(platforms.values(), Platform::write));
         ret.putUUID("Owner",owner);
         ret.putBoolean("IsPrivate",isPrivate);
         return ret;
@@ -71,7 +71,7 @@ public class TransitStation {
             @Override
             public List<TransitLine.Segment> apply(LevelAccessor level) {
                 if (!initialized) {
-                    for(var platform: platforms){
+                    for(var platform: platforms.values()){
                         var lineSeg = platform.getLineSegment(level);
                         if(lineSeg!=null)
                             cache.add(platform.getLineSegment(level));
@@ -85,22 +85,23 @@ public class TransitStation {
     }
 
     private void createPlatform(){
-        platforms.add(new Platform());
+        var in = new Platform();
+        platforms.put(in.id,in);
     }
 
     @Nullable
     public Platform getPlatform(UUID platformID){
-        return platforms.stream().filter(platform1 -> platform1.id.equals(platformID)).findFirst().orElseGet(null);
+        return platforms.get(platformID);
     }
 
     public void removePlatform(UUID platformID){
-        platforms.removeIf(platform1 -> platform1.id.equals(platformID));
+        platforms.remove(platformID);
         flushLinesCache();
     }
 
 
     private void addAllPlatform(List<Platform> platforms){
-        this.platforms.addAll(platforms);
+        platforms.forEach(platform -> this.platforms.put(platform.id,platform));
     }
 
     private Platform createPlatformFromTag(CompoundTag tag){
@@ -120,7 +121,7 @@ public class TransitStation {
     }
 
     public List<Platform> getPlatforms() {
-        return platforms;
+        return platforms.values().stream().toList();
     }
 
     public List<TransitLine.Segment> getAllLineSegments(LevelAccessor level){

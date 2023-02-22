@@ -10,9 +10,7 @@ import org.slf4j.Logger;
 import plus.dragons.createtransitroute.TransitRoute;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 public class TransitLine {
@@ -21,7 +19,7 @@ public class TransitLine {
     private final Pair<String,String> names;
     private String code;
     private String color;
-    private final List<Segment> segments;
+    private final Map<UUID,Segment> segments;
     private final UUID owner;
     private Ownership ownership;
 
@@ -30,7 +28,7 @@ public class TransitLine {
         this.names = Pair.of(name,"");
         this.code = "";
         this.color = color;
-        this.segments = new ArrayList<>();
+        this.segments = new HashMap<>();
         this.owner = owner;
         this.ownership = Ownership.PRIVATE;
     }
@@ -40,13 +38,15 @@ public class TransitLine {
         this.names = Pair.of(name,translatedName);
         this.code = code;
         this.color = color;
-        this.segments = new ArrayList<>();
+        this.segments = new HashMap<>();
         this.owner = owner;
         this.ownership = ownership;
     }
 
     private void addAllSegments(List<Segment> segments){
-        this.segments.addAll(segments);
+        for(var segment:segments){
+            this.segments.put(segment.id,segment);
+        }
     }
 
     public CompoundTag write(){
@@ -58,7 +58,7 @@ public class TransitLine {
         ret.putString("Color",color);
         ret.putUUID("Owner",owner);
         NBTHelper.writeEnum(ret,"Ownership",ownership);
-        ret.put("Segments", NBTHelper.writeCompoundList(segments, Segment::write));
+        ret.put("Segments", NBTHelper.writeCompoundList(segments.values(), Segment::write));
         return ret;
     }
 
@@ -80,8 +80,8 @@ public class TransitLine {
     }
 
     private Segment createLineSegment(String name){
-        var ret =  new Segment(name);
-        segments.add(ret);
+        var ret = new Segment(name);
+        segments.put(ret.id,ret);
         return ret;
     }
 
@@ -106,7 +106,7 @@ public class TransitLine {
     }
 
     public List<Segment> getSegments() {
-        return segments;
+        return segments.values().stream().toList();
     }
 
     public UUID getOwner() {
@@ -146,7 +146,6 @@ public class TransitLine {
 
     public class Segment {
         private final UUID id;
-
         private final Pair<String,String> names;
         private final List<Pair<UUID,UUID>> stations;
         private boolean maintaining;

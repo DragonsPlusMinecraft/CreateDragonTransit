@@ -11,7 +11,7 @@ import plus.dragons.createtransitroute.TransitRouteClient;
 
 import java.util.*;
 
-public class GlobalTransitManager {
+public class TransitNetworkManager {
 
     public Map<UUID, TransitStation> stations = new HashMap<>();
     public Map<UUID, TransitLine> lines = new HashMap<>();
@@ -19,7 +19,7 @@ public class GlobalTransitManager {
     RoutesSavedData savedData;
 
 
-    public GlobalTransitManager() {
+    public TransitNetworkManager() {
         cleanUp();
     }
 
@@ -42,7 +42,37 @@ public class GlobalTransitManager {
         }*/
     }
 
+    public UUID createLine(){
+        
+    }
 
+    public UUID createLineSegment(UUID lineID){
+
+    }
+
+    public UUID createStation(){
+
+    }
+
+    public UUID createStationPlatform(UUID stationID){
+
+    }
+
+    public void deleteLine(UUID id){
+
+    }
+
+    public void deleteLineSegment(UUID lineID, UUID id){
+
+    }
+
+    public void deleteStation(UUID id){
+
+    }
+
+    public void deleteStationPlatform(UUID stationID, UUID id){
+
+    }
 
     public void playerLogout(Player player) {}
 
@@ -74,16 +104,16 @@ public class GlobalTransitManager {
             savedData.setDirty();
     }
 
-    public GlobalTransitManager sided(LevelAccessor level) {
+    public TransitNetworkManager sided(LevelAccessor level) {
         if (level != null && !level.isClientSide())
             return this;
-        MutableObject<GlobalTransitManager> m = new MutableObject<>();
+        MutableObject<TransitNetworkManager> m = new MutableObject<>();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> clientManager(m));
         return m.getValue();
     }
 
     @OnlyIn(Dist.CLIENT)
-    private void clientManager(MutableObject<GlobalTransitManager> m) {
+    private void clientManager(MutableObject<TransitNetworkManager> m) {
         m.setValue(TransitRouteClient.ROUTES);
     }
 }
