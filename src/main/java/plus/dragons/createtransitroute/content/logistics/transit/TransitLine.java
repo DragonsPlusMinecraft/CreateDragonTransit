@@ -5,13 +5,10 @@ import com.simibubi.create.foundation.utility.NBTHelper;
 import com.simibubi.create.foundation.utility.Pair;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.level.LevelAccessor;
 import org.slf4j.Logger;
-import plus.dragons.createtransitroute.TransitRoute;
 
 
 import java.util.*;
-import java.util.function.Function;
 
 public class TransitLine {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -150,7 +147,6 @@ public class TransitLine {
         private final List<Pair<UUID,UUID>> stations;
         private boolean maintaining;
         private boolean emergency;
-        private Function<LevelAccessor, List<TransitStation.Platform>> platformCache;
 
         private Segment(String name) {
             this.id = UUID.randomUUID();
@@ -158,7 +154,6 @@ public class TransitLine {
             this.stations = new ArrayList<>();
             this.maintaining = true;
             this.emergency = false;
-            flushPlatformsCache();
         }
 
         public Segment(CompoundTag tag) {
@@ -168,7 +163,6 @@ public class TransitLine {
                     compoundTag -> Pair.of(compoundTag.getUUID("ID"),compoundTag.getUUID("Platform")));
             this.maintaining = tag.getBoolean("Maintaining");
             this.emergency = tag.getBoolean("Emergency");
-            flushPlatformsCache();
         }
 
 
@@ -188,51 +182,14 @@ public class TransitLine {
             return ret;
         }
 
-        private void flushPlatformsCache(){
-            this.platformCache = new Function<>() {
-                final List<TransitStation.Platform> cache = new ArrayList<>();
-                boolean initialized = false;
-
-                @Override
-                public List<TransitStation.Platform> apply(LevelAccessor level) {
-                    if (!initialized) {
-                        for(var pair:stations){
-                            var station = TransitRoute.ROUTES.sided(level).stations.values().stream()
-                                    .filter(station1 -> station1.getId().equals(pair.getFirst())).findFirst().orElse(null);
-                            if (station == null) {
-                                LOGGER.error("Cannot find Station by UUID " + pair.getFirst() + " in all stations, something must goes wrong! This station will be simply skipped!");
-                                continue;
-                            }
-                            var platform = station.getPlatforms().stream()
-                                    .filter(platform1 -> platform1.getId().equals(pair.getSecond())).findFirst().orElse(null);
-                            if (platform == null) {
-                                LOGGER.error("Cannot find Platform by UUID " + pair.getSecond() + " in all platforms, something must goes wrong! This platform will be simply skipped!");
-                                continue;
-                            }
-                            cache.add(platform);
-                        }
-                        initialized = true;
-                    }
-                    return cache;
-                }
-            };
-
-        }
-
-        public List<TransitStation.Platform> getPlatforms(LevelAccessor levelAccessor){
-            return platformCache.apply(levelAccessor);
-        }
-
         public boolean attachPlatform(UUID stationID,UUID platformID){
             this.stations.add(Pair.of(stationID,platformID));
-            flushPlatformsCache();
             return true;
         }
 
         public void detachPlatform(UUID platformID){
             if(stations.stream().map(Pair::getSecond).toList().contains(platformID)){
                 stations.removeIf(pair -> platformID.equals(pair.getSecond()));
-                flushPlatformsCache();
             }
         }
 

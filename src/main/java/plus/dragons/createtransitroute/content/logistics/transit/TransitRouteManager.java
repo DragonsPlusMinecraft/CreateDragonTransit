@@ -11,15 +11,22 @@ import plus.dragons.createtransitroute.TransitRouteClient;
 
 import java.util.*;
 
-public class TransitNetworkManager {
-
+/**
+ * A Transit Manager holding and handling all transit lines & transit stations. <br><br>
+ *
+ * {@link TransitStation} and {@link TransitLine} are merely data structures for holding information,
+ * thus any direct editing on it will not be synced automatically
+ * and any bind & unbind action between {@link TransitStation.Platform} & {@link TransitLine.Segment}
+ * does not affect corresponding target (bind & unbind action should be done in both side).
+ */
+public class TransitRouteManager {
     public Map<UUID, TransitStation> stations = new HashMap<>();
     public Map<UUID, TransitLine> lines = new HashMap<>();
     GlobalRouteSync sync;
     RoutesSavedData savedData;
 
 
-    public TransitNetworkManager() {
+    public TransitRouteManager() {
         cleanUp();
     }
 
@@ -43,7 +50,7 @@ public class TransitNetworkManager {
     }
 
     public UUID createLine(){
-        
+
     }
 
     public UUID createLineSegment(UUID lineID){
@@ -104,16 +111,16 @@ public class TransitNetworkManager {
             savedData.setDirty();
     }
 
-    public TransitNetworkManager sided(LevelAccessor level) {
+    public TransitRouteManager sided(LevelAccessor level) {
         if (level != null && !level.isClientSide())
             return this;
-        MutableObject<TransitNetworkManager> m = new MutableObject<>();
+        MutableObject<TransitRouteManager> m = new MutableObject<>();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> clientManager(m));
         return m.getValue();
     }
 
     @OnlyIn(Dist.CLIENT)
-    private void clientManager(MutableObject<TransitNetworkManager> m) {
+    private void clientManager(MutableObject<TransitRouteManager> m) {
         m.setValue(TransitRouteClient.ROUTES);
     }
 }
