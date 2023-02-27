@@ -1,4 +1,4 @@
-package plus.dragons.createtransitroute.content.logistics.transit;
+package plus.dragons.createdragontransit.content.logistics.transit;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
@@ -7,12 +7,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
-import plus.dragons.createtransitroute.TransitRouteClient;
-import plus.dragons.createtransitroute.entry.CtrPackets;
+import plus.dragons.createdragontransit.DragonTransit;
+import plus.dragons.createdragontransit.DragonTransitClient;
+import plus.dragons.createdragontransit.entry.CtrPackets;
 
 import java.util.*;
 
@@ -25,13 +28,14 @@ import java.util.*;
  * does not affect corresponding target (bind & unbind action should be done in both side).<br><br>
  *
  * Please use {@link #syncLine(TransitLine)} and {@link #syncStation(TransitStation)} after direct editing.
- * For other creation/deletion/binding/unbinding actions, please use methods in {@link TransitRouteManager} and manual syncing is not required.
+ * For other creation/deletion/binding/unbinding actions, please use methods in {@link TransitNetworkManager} and manual syncing is not required.
  */
-public class TransitRouteManager {
+
+public class TransitNetworkManager {
     public TransitNetwork network = new TransitNetwork();
     RoutesSavedData savedData;
 
-    public TransitRouteManager() {
+    public TransitNetworkManager() {
         cleanUp();
     }
 
@@ -99,25 +103,27 @@ public class TransitRouteManager {
         markDirty();
     }
 
-    public void playerLogin(Player player) {
+    public static void playerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        Player player = event.getEntity();
+        var manager = DragonTransit.ROUTES;
         if (player instanceof ServerPlayer serverPlayer) {
-            loadRouteData(serverPlayer.getServer());
+            manager.loadRouteData(serverPlayer.getServer());
             CompoundTag tag = new CompoundTag();
-            network.save(tag);
+            manager.network.save(tag);
             var packet = new TransitNetworkInitializePacket(tag);
             CtrPackets.channel.send(PacketDistributor.PLAYER.with(() -> serverPlayer), packet);
         }
     }
 
-    public void playerLogout(Player player) {}
-
-    public void levelLoaded(LevelAccessor level) {
+    public static void onLoadWorld(LevelEvent.Load event) {
+        LevelAccessor level = event.getLevel();
+        var manager = DragonTransit.ROUTES;
         MinecraftServer server = level.getServer();
         if (server == null || server.overworld() != level)
             return;
-        cleanUp();
-        savedData = null;
-        loadRouteData(server);
+        manager.cleanUp();
+        manager.savedData = null;
+        manager.loadRouteData(server);
     }
 
     private void loadRouteData(MinecraftServer server) {
@@ -129,7 +135,6 @@ public class TransitRouteManager {
 
     public void cleanUp() {
         network = new TransitNetwork();
-        sync = new GlobalRouteSync();
     }
 
     public void markDirty() {
@@ -137,16 +142,16 @@ public class TransitRouteManager {
             savedData.setDirty();
     }
 
-    public TransitRouteManager sided(LevelAccessor level) {
+    public TransitNetworkManager sided(LevelAccessor level) {
         if (level != null && !level.isClientSide())
             return this;
-        MutableObject<TransitRouteManager> m = new MutableObject<>();
+        MutableObject<TransitNetworkManager> m = new MutableObject<>();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> clientManager(m));
         return m.getValue();
     }
 
     @OnlyIn(Dist.CLIENT)
-    private void clientManager(MutableObject<TransitRouteManager> m) {
-        m.setValue(TransitRouteClient.ROUTES);
+    private void clientManager(MutableObject<TransitNetworkManager> m) {
+        m.setValue(DragonTransitClient.ROUTES);
     }
 }

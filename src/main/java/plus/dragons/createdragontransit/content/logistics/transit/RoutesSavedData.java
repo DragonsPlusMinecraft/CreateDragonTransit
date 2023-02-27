@@ -1,4 +1,4 @@
-package plus.dragons.createtransitroute.content.logistics.transit;
+package plus.dragons.createdragontransit.content.logistics.transit;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
@@ -25,6 +25,6 @@ public class RoutesSavedData extends SavedData {
     public static RoutesSavedData load(MinecraftServer server) {
         return server.overworld()
                 .getDataStorage()
-                .computeIfAbsent(RoutesSavedData::load, RoutesSavedData::new, "create_transit_route");
+                .computeIfAbsent(RoutesSavedData::load, RoutesSavedData::new, "dragon_transit_railway");
     }
 }

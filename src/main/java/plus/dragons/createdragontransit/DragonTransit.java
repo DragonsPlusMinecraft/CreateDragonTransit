@@ -1,4 +1,4 @@
-package plus.dragons.createtransitroute;
+package plus.dragons.createdragontransit;
 
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
@@ -14,32 +14,39 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import plus.dragons.createdragonlib.init.SafeRegistrate;
 import plus.dragons.createdragonlib.lang.Lang;
-import plus.dragons.createtransitroute.content.logistics.transit.TransitRouteManager;
-import plus.dragons.createtransitroute.entry.CtrPackets;
+import plus.dragons.createdragontransit.content.logistics.transit.TransitNetworkManager;
+import plus.dragons.createdragontransit.entry.CtrPackets;
 
-@Mod(TransitRoute.ID)
-public class TransitRoute
+@Mod(DragonTransit.ID)
+public class DragonTransit
 {
     private static final Logger LOGGER = LogUtils.getLogger();
-    public static final String ID = "create_transit_route";
-    public static final String NAME = "Create Transit Route";
+    public static final String ID = "create_dragon_transit";
+    public static final String NAME = "Create Dragon Transit";
     public static final CreateRegistrate REGISTRATE = new SafeRegistrate(ID);
     public static final Lang LANG = new Lang(ID);
-    public static TransitRouteManager ROUTES = new TransitRouteManager();
+    public static TransitNetworkManager ROUTES = new TransitNetworkManager();
 
 
-    public TransitRoute() {
+    public DragonTransit() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
 
 
         registerEntries(modEventBus);
-        modEventBus.addListener(TransitRoute::setup);
-        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> TransitRouteClient::new);
+        modEventBus.addListener(DragonTransit::setup);
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> DragonTransitClient::new);
+
+
     }
 
     private void registerEntries(IEventBus modEventBus) {
         REGISTRATE.registerEventListeners(modEventBus);
+    }
+
+    private void registerTransitRouteManagerEvent(IEventBus forgeEventBus) {
+        forgeEventBus.addListener(TransitNetworkManager::playerLoggedIn);
+        forgeEventBus.addListener(TransitNetworkManager::onLoadWorld);
     }
 
     @SubscribeEvent

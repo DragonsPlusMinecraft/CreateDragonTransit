@@ -1,10 +1,10 @@
-package plus.dragons.createtransitroute.content.logistics.transit;
+package plus.dragons.createdragontransit.content.logistics.transit;
 
 import com.simibubi.create.foundation.networking.SimplePacketBase;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
-import plus.dragons.createtransitroute.TransitRouteClient;
+import plus.dragons.createdragontransit.DragonTransitClient;
 
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -74,7 +74,7 @@ public class TransitNetworkSyncPacket extends SimplePacketBase {
     public void handle(Supplier<NetworkEvent.Context> context) {
         context.get()
                 .enqueueWork(() -> {
-                    var manager = TransitRouteClient.ROUTES;
+                    var manager = DragonTransitClient.ROUTES;
                     if(op==0){
                         if(modifiedStation!=null){
                             manager.network.stations.put(modifiedStation.getId(),modifiedStation);

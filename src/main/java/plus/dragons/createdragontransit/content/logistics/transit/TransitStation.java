@@ -1,4 +1,4 @@
-package plus.dragons.createtransitroute.content.logistics.transit;
+package plus.dragons.createdragontransit.content.logistics.transit;
 
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.utility.NBTHelper;

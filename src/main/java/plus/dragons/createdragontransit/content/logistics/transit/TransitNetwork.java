@@ -1,9 +1,9 @@
-package plus.dragons.createtransitroute.content.logistics.transit;
+package plus.dragons.createdragontransit.content.logistics.transit;
 
 import com.simibubi.create.foundation.utility.NBTHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import plus.dragons.createtransitroute.TransitRoute;
+import plus.dragons.createdragontransit.DragonTransit;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +14,7 @@ public class TransitNetwork {
     public Map<UUID, TransitLine> lines = new HashMap<>();
 
     public CompoundTag save(CompoundTag compoundTag) {
-        TransitRouteManager routes = TransitRoute.ROUTES;
+        TransitNetworkManager routes = DragonTransit.ROUTES;
         compoundTag.put("Stations", NBTHelper.writeCompoundList(routes.network.stations.values(), TransitStation::write));
         compoundTag.put("Lines", NBTHelper.writeCompoundList(routes.network.lines.values(), TransitLine::write));
         return compoundTag;

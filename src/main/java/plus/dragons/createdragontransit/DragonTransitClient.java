@@ -1,15 +1,15 @@
-package plus.dragons.createtransitroute;
+package plus.dragons.createdragontransit;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import plus.dragons.createtransitroute.content.logistics.transit.TransitRouteManager;
+import plus.dragons.createdragontransit.content.logistics.transit.TransitNetworkManager;
 
-public class TransitRouteClient {
+public class DragonTransitClient {
 
-    public static TransitRouteManager ROUTES = new TransitRouteManager();
+    public static TransitNetworkManager ROUTES = new TransitNetworkManager();
 
-    public TransitRouteClient() {
+    public DragonTransitClient() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
     }
