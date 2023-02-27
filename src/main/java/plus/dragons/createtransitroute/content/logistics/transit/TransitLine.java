@@ -5,6 +5,8 @@ import com.simibubi.create.foundation.utility.NBTHelper;
 import com.simibubi.create.foundation.utility.Pair;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 
@@ -40,12 +42,6 @@ public class TransitLine {
         this.ownership = ownership;
     }
 
-    private void addAllSegments(List<Segment> segments){
-        for(var segment:segments){
-            this.segments.put(segment.id,segment);
-        }
-    }
-
     public CompoundTag write(){
         CompoundTag ret = new CompoundTag();
         ret.putUUID("UUID",id);
@@ -72,14 +68,41 @@ public class TransitLine {
         return ret;
     }
 
-    private Segment createSegmentFromTag(CompoundTag tag){
-        return new Segment(tag);
-    }
-
-    private Segment createLineSegment(String name){
+    Segment createLineSegment(String name){
         var ret = new Segment(name);
         segments.put(ret.id,ret);
         return ret;
+    }
+
+    Segment createSegmentFromTag(CompoundTag tag){
+        var id = tag.getUUID("Id");
+        var names = Pair.of(tag.getString("Name"),tag.getString("TranslatedName"));
+        var stations = NBTHelper.readCompoundList(tag.getList("Stations", Tag.TAG_COMPOUND),
+                compoundTag -> Pair.of(compoundTag.getUUID("ID"),compoundTag.getUUID("Platform")));
+        var maintaining = tag.getBoolean("Maintaining");
+        var emergency = tag.getBoolean("Emergency");
+        return new Segment(id,names,stations,maintaining,emergency);
+    }
+
+    void updateSegmentFromTag(CompoundTag tag){
+        var id = tag.getUUID("Id");
+        segments.put(id,createSegmentFromTag(tag));
+    }
+
+    @Nullable
+    Segment getSegment(UUID segmentID){
+        return segments.get(segmentID);
+    }
+
+
+    void removeSegment(UUID segmentID){
+        segments.remove(segmentID);
+    }
+
+    private void addAllSegments(List<Segment> segments){
+        for(var segment:segments){
+            this.segments.put(segment.id,segment);
+        }
     }
 
     public UUID getId() {
@@ -134,14 +157,13 @@ public class TransitLine {
         this.ownership = ownership;
     }
 
-
     public enum Ownership{
         PUBLIC,
         PRIVATE,
         SECRET
     }
 
-    public class Segment {
+    public class Segment{
         private final UUID id;
         private final Pair<String,String> names;
         private final List<Pair<UUID,UUID>> stations;
@@ -156,33 +178,15 @@ public class TransitLine {
             this.emergency = false;
         }
 
-        public Segment(CompoundTag tag) {
-            this.id = tag.getUUID("Id");
-            this.names = Pair.of(tag.getString("Name"),tag.getString("TranslatedName"));
-            this.stations = NBTHelper.readCompoundList(tag.getList("Stations", Tag.TAG_COMPOUND),
-                    compoundTag -> Pair.of(compoundTag.getUUID("ID"),compoundTag.getUUID("Platform")));
-            this.maintaining = tag.getBoolean("Maintaining");
-            this.emergency = tag.getBoolean("Emergency");
+        public Segment(UUID id, Pair<String, String> names, List<Pair<UUID, UUID>> stations, boolean maintaining, boolean emergency) {
+            this.id = id;
+            this.names = names;
+            this.stations = stations;
+            this.maintaining = maintaining;
+            this.emergency = emergency;
         }
 
-
-        public CompoundTag write(){
-            CompoundTag ret = new CompoundTag();
-            ret.putUUID("Id",id);
-            ret.putString("Name",names.getFirst());
-            ret.putString("TranslatedName",names.getSecond());
-            ret.putBoolean("Maintaining",maintaining);
-            ret.putBoolean("Emergency",emergency);
-            ret.put("Stations", NBTHelper.writeCompoundList(stations, pair -> {
-                var tag = new CompoundTag();
-                tag.putUUID("ID",pair.getFirst());
-                tag.putUUID("Platform",pair.getSecond());
-                return tag;
-            }));
-            return ret;
-        }
-
-        public boolean attachPlatform(UUID stationID,UUID platformID){
+        public boolean attachPlatform(UUID stationID, UUID platformID){
             this.stations.add(Pair.of(stationID,platformID));
             return true;
         }
@@ -242,6 +246,22 @@ public class TransitLine {
 
         public TransitLine getLine(){
             return TransitLine.this;
+        }
+
+        public CompoundTag write(){
+            CompoundTag ret = new CompoundTag();
+            ret.putUUID("Id",id);
+            ret.putString("Name",names.getFirst());
+            ret.putString("TranslatedName",names.getSecond());
+            ret.putBoolean("Maintaining",maintaining);
+            ret.putBoolean("Emergency",emergency);
+            ret.put("Stations", NBTHelper.writeCompoundList(stations, pair -> {
+                var tag = new CompoundTag();
+                tag.putUUID("ID",pair.getFirst());
+                tag.putUUID("Platform",pair.getSecond());
+                return tag;
+            }));
+            return ret;
         }
     }
 }

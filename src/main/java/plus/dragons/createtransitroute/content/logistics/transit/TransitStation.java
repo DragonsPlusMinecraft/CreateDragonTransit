@@ -5,12 +5,10 @@ import com.simibubi.create.foundation.utility.NBTHelper;
 import com.simibubi.create.foundation.utility.Pair;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.level.LevelAccessor;
 import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.Function;
 
 
 public class TransitStation {
@@ -59,10 +57,25 @@ public class TransitStation {
         return ret;
     }
 
-    private UUID createPlatform(){
+    UUID createPlatform(){
         var in = new Platform();
         platforms.put(in.id,in);
         return in.id;
+    }
+
+    Platform createPlatformFromTag(CompoundTag tag){
+        var id = tag.getUUID("ID");
+        var maintaining = tag.getBoolean("Maintaining");
+        Pair<UUID,UUID> line = null;
+        if(tag.contains("Line")){
+            line = Pair.of(tag.getUUID("Line"),tag.getUUID("Segment"));
+        }
+        return new Platform(id,maintaining,line);
+    }
+
+    void updatePlatformFromTag(CompoundTag tag){
+        var id = tag.getUUID("ID");
+        platforms.replace(id,createPlatformFromTag(tag));
     }
 
     @Nullable
@@ -74,13 +87,8 @@ public class TransitStation {
         platforms.remove(platformID);
     }
 
-
     private void addAllPlatform(List<Platform> platforms){
         platforms.forEach(platform -> this.platforms.put(platform.id,platform));
-    }
-
-    private Platform createPlatformFromTag(CompoundTag tag){
-        return new Platform(tag);
     }
 
     public UUID getId() {
@@ -124,19 +132,16 @@ public class TransitStation {
         private boolean maintaining;
         @Nullable
         private Pair<UUID,UUID> line = null;
-        private Function<LevelAccessor, TransitLine.Segment> lineCache;
 
         private Platform() {
             this.id = UUID.randomUUID();
             this.maintaining = false;
         }
 
-        private Platform(CompoundTag tag) {
-            this.id = tag.getUUID("ID");
-            this.maintaining = tag.getBoolean("Maintaining");
-            if(tag.contains("Line")){
-                this.line = Pair.of(tag.getUUID("Line"),tag.getUUID("Segment"));
-            } else this.line =  null;
+        public Platform(UUID id, boolean maintaining, @Nullable Pair<UUID, UUID> line) {
+            this.id = id;
+            this.maintaining = maintaining;
+            this.line = line;
         }
 
         public CompoundTag write(){
@@ -160,11 +165,6 @@ public class TransitStation {
 
         public UUID getId() {
             return id;
-        }
-
-        @Nullable
-        public TransitLine.Segment getLineSegment(LevelAccessor level) {
-            return lineCache.apply(level);
         }
 
         public TransitStation getStation(){

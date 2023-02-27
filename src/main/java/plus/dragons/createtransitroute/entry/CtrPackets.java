@@ -11,18 +11,20 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import plus.dragons.createtransitroute.TransitRoute;
+import plus.dragons.createtransitroute.content.logistics.transit.TransitNetworkInitializePacket;
+import plus.dragons.createtransitroute.content.logistics.transit.TransitNetworkSyncPacket;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static net.minecraftforge.network.NetworkDirection.PLAY_TO_SERVER;
+import static net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT;
 
 public enum CtrPackets {
 
     // Client to Server
-    SOME_PACKET(SomePacket.class, SomePacket::new, PLAY_TO_SERVER);
-
+    TRANSIT_NETWORK_INI(TransitNetworkInitializePacket.class, TransitNetworkInitializePacket::new, PLAY_TO_CLIENT, LoadedPacket.ConsumeThread.MAIN),
+    TRANSIT_NETWORK_SYNC(TransitNetworkSyncPacket.class, TransitNetworkSyncPacket::new, PLAY_TO_CLIENT, LoadedPacket.ConsumeThread.NETWORK);
     public static final ResourceLocation CHANNEL_NAME = TransitRoute.genRL("main");
     public static final int NETWORK_VERSION = 1;
     public static final String NETWORK_VERSION_STR = String.valueOf(NETWORK_VERSION);
