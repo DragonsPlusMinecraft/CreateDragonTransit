@@ -39,56 +39,104 @@ public class TransitNetworkManager {
         cleanUp();
     }
 
-    public UUID createLine(){
-
+    public UUID createLine(UUID creator){
+        var line = new TransitLine(creator);
+        network.lines.put(line.getId(),line);
         markDirty();
+        return line.getId();
     }
 
     @Nullable
     public UUID createLineSegment(UUID lineID){
-
+        var line = network.lines.get(lineID);
+        if(line==null) return null;
+        var segment = line.createLineSegment();
         markDirty();
+        return segment.getId();
     }
 
-    public UUID createStation(){
-
+    public UUID createStation(UUID creator){
+        var station = new TransitStation(creator);
+        network.stations.put(station.getId(),station);
         markDirty();
+        return station.getId();
     }
 
     @Nullable
     public UUID createStationPlatform(UUID stationID){
-
+        var station = network.stations.get(stationID);
+        if(station==null) return null;
+        var platform = station.createPlatform();
         markDirty();
+        return platform.getId();
     }
 
-    public void deleteLine(UUID id){
-
-        markDirty();
+    public boolean deleteLine(UUID id){
+        if(network.lines.remove(id)!=null) {
+            markDirty();
+            return true;
+        }
+        return false;
     }
 
-    public void deleteLineSegment(UUID lineID, UUID id){
-
-        markDirty();
+    public boolean deleteLineSegment(UUID lineID, UUID id){
+        var line = network.lines.get(lineID);
+        if(line==null) return false;
+        if(line.removeSegment(id)!=null){
+            markDirty();
+            return true;
+        }
+        return false;
     }
 
-    public void deleteStation(UUID id){
-
-        markDirty();
+    public boolean deleteStation(UUID id){
+        if(network.stations.remove(id)!=null){
+            markDirty();
+            return true;
+        }
+        return false;
     }
 
-    public void deleteStationPlatform(UUID stationID, UUID id){
-
-        markDirty();
+    public boolean deleteStationPlatform(UUID stationID, UUID id){
+        var station = network.stations.get(stationID);
+        if(station==null) return false;
+        if(station.removePlatform(id)!=null){
+            markDirty();
+            return true;
+        }
+        return false;
     }
 
-    public boolean bindPlatformTo(UUID stationID, UUID PlatformID, UUID lineID, UUID segmentID){
-
-        markDirty();
+    public boolean bindPlatformTo(UUID stationID, UUID platformID, UUID lineID, UUID segmentID){
+        var line = network.lines.get(lineID);
+        if(line==null) return false;
+        var segment = line.getSegment(segmentID);
+        if(segment==null) return false;
+        var station = network.stations.get(stationID);
+        if(station==null) return false;
+        var platform = station.getPlatform(platformID);
+        if(platform==null) return false;
+        if(segment.attachPlatform(stationID,platformID) && platform.bindLineSegment(lineID,segmentID)){
+            markDirty();
+            return true;
+        }
+        return false;
     }
 
-    public void unbindPlatformTo(UUID stationID, UUID PlatformID, UUID lineID, UUID segmentID){
-
-        markDirty();
+    public boolean unbindPlatformTo(UUID stationID, UUID platformID, UUID lineID, UUID segmentID){
+        var line = network.lines.get(lineID);
+        if(line==null) return false;
+        var segment = line.getSegment(segmentID);
+        if(segment==null) return false;
+        var station = network.stations.get(stationID);
+        if(station==null) return false;
+        var platform = station.getPlatform(platformID);
+        if(platform==null) return false;
+        if(segment.detachPlatform(stationID,platformID) && platform.unbindLineSegment(lineID,segmentID)){
+            markDirty();
+            return true;
+        }
+        return false;
     }
 
     public void syncStation(TransitStation station){

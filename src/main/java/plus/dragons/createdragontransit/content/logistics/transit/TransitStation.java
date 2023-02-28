@@ -19,9 +19,9 @@ public class TransitStation {
     private final UUID owner;
     private boolean isPrivate;
 
-    public TransitStation(String name, UUID owner) {
+    public TransitStation(UUID owner) {
         this.id = UUID.randomUUID();
-        this.names = Pair.of(name,"");
+        this.names = Pair.of("New Station","");
         this.platforms = new HashMap<>();
         this.owner = owner;
         this.isPrivate = true;
@@ -57,10 +57,10 @@ public class TransitStation {
         return ret;
     }
 
-    UUID createPlatform(){
+    Platform createPlatform(){
         var in = new Platform();
         platforms.put(in.id,in);
-        return in.id;
+        return in;
     }
 
     Platform createPlatformFromTag(CompoundTag tag){
@@ -83,8 +83,8 @@ public class TransitStation {
         return platforms.get(platformID);
     }
 
-    void removePlatform(UUID platformID){
-        platforms.remove(platformID);
+    Platform removePlatform(UUID platformID){
+        return platforms.remove(platformID);
     }
 
     private void addAllPlatform(List<Platform> platforms){
@@ -177,8 +177,12 @@ public class TransitStation {
             return true;
         }
 
-        void unbindLineSegment(){
-            this.line = null;
+        boolean unbindLineSegment(UUID lineID, UUID segmentID){
+            if(line.getFirst().equals(lineID) && line.getSecond().equals(segmentID)){
+                this.line = null;
+                return true;
+            }
+            return false;
         }
     }
 

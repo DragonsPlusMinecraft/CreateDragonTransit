@@ -21,11 +21,21 @@ public class TransitLine {
     private final UUID owner;
     private Ownership ownership;
 
-    public TransitLine(String name, String color, UUID owner) {
+    public TransitLine(UUID owner) {
         this.id = UUID.randomUUID();
-        this.names = Pair.of(name,"");
+        this.names = Pair.of("New Line","");
         this.code = "";
-        this.color = color;
+        var random = new Random();
+        char[] hex = { '0', '1', '2', '3', '4', '5', '6', '7',
+                '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+        char[] s = new char[7];
+        int n = random.nextInt(0x1000000);
+        s[0] = '#';
+        for (int i=1;i<7;i++) {
+            s[i] = hex[n & 0xf];
+            n >>= 4;
+        }
+        this.color = new String(s);
         this.segments = new HashMap<>();
         this.owner = owner;
         this.ownership = Ownership.PRIVATE;
@@ -67,8 +77,8 @@ public class TransitLine {
         return ret;
     }
 
-    Segment createLineSegment(String name){
-        var ret = new Segment(name);
+    Segment createLineSegment(){
+        var ret = new Segment("New Segment");
         segments.put(ret.id,ret);
         return ret;
     }
@@ -94,8 +104,8 @@ public class TransitLine {
     }
 
 
-    void removeSegment(UUID segmentID){
-        segments.remove(segmentID);
+    Segment removeSegment(UUID segmentID){
+        return segments.remove(segmentID);
     }
 
     private void addAllSegments(List<Segment> segments){
@@ -186,14 +196,18 @@ public class TransitLine {
         }
 
         public boolean attachPlatform(UUID stationID, UUID platformID){
+            if(stations.contains(Pair.of(stationID,platformID)))
+                return false;
             this.stations.add(Pair.of(stationID,platformID));
             return true;
         }
 
-        public void detachPlatform(UUID platformID){
-            if(stations.stream().map(Pair::getSecond).toList().contains(platformID)){
+        public boolean detachPlatform(UUID stationID, UUID platformID){
+            if(stations.contains(Pair.of(stationID,platformID))){
                 stations.removeIf(pair -> platformID.equals(pair.getSecond()));
+                return true;
             }
+            return false;
         }
 
         public UUID getId() {

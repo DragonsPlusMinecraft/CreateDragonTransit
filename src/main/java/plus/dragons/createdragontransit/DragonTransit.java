@@ -35,9 +35,8 @@ public class DragonTransit
 
         registerEntries(modEventBus);
         modEventBus.addListener(DragonTransit::setup);
+        registerTransitRouteManagerEvent(forgeEventBus);
         DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> DragonTransitClient::new);
-
-
     }
 
     private void registerEntries(IEventBus modEventBus) {
