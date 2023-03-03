@@ -1,6 +1,9 @@
 package plus.dragons.createdragontransit;
 
 import com.mojang.logging.LogUtils;
+import com.simibubi.create.Create;
+import com.simibubi.create.content.logistics.trains.management.edgePoint.EdgePointType;
+import com.simibubi.create.content.logistics.trains.management.edgePoint.observer.TrackObserver;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -15,6 +18,7 @@ import org.slf4j.Logger;
 import plus.dragons.createdragonlib.init.SafeRegistrate;
 import plus.dragons.createdragonlib.lang.Lang;
 import plus.dragons.createdragontransit.content.logistics.transit.TransitNetworkManager;
+import plus.dragons.createdragontransit.content.logistics.transit.management.edgepoint.station.TransitStationPlatform;
 import plus.dragons.createdragontransit.entry.CtrPackets;
 
 @Mod(DragonTransit.ID)
@@ -26,6 +30,8 @@ public class DragonTransit
     public static final CreateRegistrate REGISTRATE = new SafeRegistrate(ID);
     public static final Lang LANG = new Lang(ID);
     public static TransitNetworkManager ROUTES = new TransitNetworkManager();
+    public static final EdgePointType<TransitStationPlatform> PLATFORM =
+            EdgePointType.register(genRL("platform"), TransitStationPlatform::new);
 
 
     public DragonTransit() {
