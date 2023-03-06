@@ -9,20 +9,21 @@ import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class TransitStation {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final UUID id;
     private final Pair<String,String> names;
-    private final Map<UUID,Platform> platforms;
+    private final List<Pair<UUID,Boolean>> platforms;
     private final UUID owner;
     private boolean isPrivate;
 
     public TransitStation(UUID owner) {
         this.id = UUID.randomUUID();
         this.names = Pair.of("New Station","");
-        this.platforms = new HashMap<>();
+        this.platforms = new ArrayList<>();
         this.owner = owner;
         this.isPrivate = true;
     }
@@ -30,7 +31,7 @@ public class TransitStation {
     private TransitStation(UUID id, String name, String translatedName, UUID owner, boolean isPrivate) {
         this.id = id;
         this.names = Pair.of(name,translatedName);
-        this.platforms = new HashMap<>();
+        this.platforms = new ArrayList<>();
         this.owner = owner;
         this.isPrivate = isPrivate;
     }
@@ -40,7 +41,12 @@ public class TransitStation {
         ret.putUUID("UUID",id);
         ret.putString("Name", names.getFirst());
         ret.putString("TranslatedName", names.getSecond());
-        ret.put("Platforms", NBTHelper.writeCompoundList(platforms.values(), Platform::write));
+        ret.put("Platforms", NBTHelper.writeCompoundList(platforms, p->{
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("PlatformID",p.getFirst());
+            tag.putBoolean("Occupied",p.getSecond());
+            return tag;
+        }));
         ret.putUUID("Owner",owner);
         ret.putBoolean("IsPrivate",isPrivate);
         return ret;
@@ -53,42 +59,25 @@ public class TransitStation {
         var owner = tag.getUUID("Owner");
         var isPrivate = tag.getBoolean("IsPrivate");
         var ret = new TransitStation(id,name,translatedName,owner,isPrivate);
-        ret.addAllPlatform(NBTHelper.readCompoundList(tag.getList("Platforms", Tag.TAG_COMPOUND), ret::createPlatformFromTag));
+        ret.addAllPlatform(NBTHelper.readCompoundList(tag.getList("Platforms", Tag.TAG_COMPOUND), compoundTag ->
+                Pair.of(compoundTag.getUUID("PlatformID"),compoundTag.getBoolean("Occupied"))));
         return ret;
     }
 
-    Platform createPlatform(){
-        var in = new Platform();
-        platforms.put(in.id,in);
-        return in;
+    boolean removePlatform(UUID platformID){
+        return platforms.removeIf(p->p.getFirst().equals(platformID));
     }
 
-    Platform createPlatformFromTag(CompoundTag tag){
-        var id = tag.getUUID("ID");
-        var maintaining = tag.getBoolean("Maintaining");
-        Pair<UUID,UUID> line = null;
-        if(tag.contains("Line")){
-            line = Pair.of(tag.getUUID("Line"),tag.getUUID("Segment"));
-        }
-        return new Platform(id,maintaining,line);
+    void addPlatform(UUID platformID){
+        platforms.add(Pair.of(platformID,false));
     }
 
-    void updatePlatformFromTag(CompoundTag tag){
-        var id = tag.getUUID("ID");
-        platforms.replace(id,createPlatformFromTag(tag));
+    boolean containsPlatform(UUID platformID){
+        return platforms.stream().map(Pair::getFirst).collect(Collectors.toList()).contains(platformID);
     }
 
-    @Nullable
-    public Platform getPlatform(UUID platformID){
-        return platforms.get(platformID);
-    }
-
-    Platform removePlatform(UUID platformID){
-        return platforms.remove(platformID);
-    }
-
-    private void addAllPlatform(List<Platform> platforms){
-        platforms.forEach(platform -> this.platforms.put(platform.id,platform));
+    private void addAllPlatform(List<Pair<UUID,Boolean>> platforms){
+        this.platforms.addAll(platforms);
     }
 
     public UUID getId() {
@@ -101,10 +90,6 @@ public class TransitStation {
 
     public String getTranslatedName() {
         return names.getSecond();
-    }
-
-    public List<Platform> getPlatforms() {
-        return platforms.values().stream().toList();
     }
 
     public UUID getOwner() {
@@ -126,65 +111,4 @@ public class TransitStation {
     public void setPrivate(boolean aPrivate) {
         isPrivate = aPrivate;
     }
-
-    public class Platform {
-        private final UUID id;
-        private boolean maintaining;
-        @Nullable
-        private Pair<UUID,UUID> line = null;
-
-        private Platform() {
-            this.id = UUID.randomUUID();
-            this.maintaining = false;
-        }
-
-        public Platform(UUID id, boolean maintaining, @Nullable Pair<UUID, UUID> line) {
-            this.id = id;
-            this.maintaining = maintaining;
-            this.line = line;
-        }
-
-        public CompoundTag write(){
-            CompoundTag ret = new CompoundTag();
-            ret.putUUID("ID",id);
-            ret.putBoolean("Maintaining",maintaining);
-            if(line!=null){
-                ret.putUUID("Line",line.getFirst());
-                ret.putUUID("Segment",line.getSecond());
-            }
-            return ret;
-        }
-
-        public boolean isMaintaining() {
-            return maintaining;
-        }
-
-        public void setMaintaining(boolean maintaining) {
-            this.maintaining = maintaining;
-        }
-
-        public UUID getId() {
-            return id;
-        }
-
-        public TransitStation getStation(){
-            return TransitStation.this;
-        }
-
-        boolean bindLineSegment(UUID lineID, UUID segmentID){
-            if(this.line!=null) return false;
-            this.line = Pair.of(lineID,segmentID);
-            return true;
-        }
-
-        boolean unbindLineSegment(UUID lineID, UUID segmentID){
-            if(line.getFirst().equals(lineID) && line.getSecond().equals(segmentID)){
-                this.line = null;
-                return true;
-            }
-            return false;
-        }
-    }
-
-
 }

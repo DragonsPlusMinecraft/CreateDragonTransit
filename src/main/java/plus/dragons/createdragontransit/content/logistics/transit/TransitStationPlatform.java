@@ -1,29 +1,30 @@
-package plus.dragons.createdragontransit.content.logistics.transit.management.edgepoint.station;
+package plus.dragons.createdragontransit.content.logistics.transit;
 
 import com.simibubi.create.content.logistics.trains.DimensionPalette;
 import com.simibubi.create.content.logistics.trains.entity.Train;
 import com.simibubi.create.content.logistics.trains.management.edgePoint.signal.SingleTileEdgePoint;
-import com.simibubi.create.foundation.utility.Pair;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import plus.dragons.createdragontransit.content.logistics.transit.TransitStation;
 
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.UUID;
 
 public class TransitStationPlatform extends SingleTileEdgePoint {
-    public WeakReference<TransitStation.Platform> platform;
+
+    private UUID id;
+    public String name;
     public WeakReference<Train> nearestTrain;
     @Nullable
-    public Pair<UUID,UUID> belong;
+    public UUID station;
 
 
     public TransitStationPlatform() {
-        belong = null;
+        id = UUID.randomUUID();
+        name = "Unnamed Platform";
+        station = null;
         nearestTrain = new WeakReference<>(null);
-        platform = new WeakReference<>(null);
     }
 
     @Override
@@ -35,11 +36,10 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     @Override
     public void read(CompoundTag nbt, boolean migration, DimensionPalette dimensions) {
         super.read(nbt, migration, dimensions);
-        if(nbt.getBoolean("Bound")){
-            belong = Pair.of(nbt.getUUID("StationID"),nbt.getUUID("PlatformID"));
-            fetchPlatform();
-        }
-        nearestTrain = new WeakReference<Train>(null);
+        id = nbt.getUUID("ID");
+        name = nbt.getString("Name");
+        station = nbt.contains("StationID")? nbt.getUUID("StationID"): null;
+        nearestTrain = new WeakReference<>(null);
     }
 
 
@@ -47,9 +47,10 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     @Override
     public void read(FriendlyByteBuf buffer, DimensionPalette dimensions) {
         super.read(buffer, dimensions);
+        id = buffer.readUUID();
+        name = buffer.readUtf();
         if(buffer.readBoolean()){
-            belong = Pair.of(buffer.readUUID(),buffer.readUUID());
-            fetchPlatform();
+            station = buffer.readUUID();
         }
         if (buffer.readBoolean())
             tilePos = buffer.readBlockPos();
@@ -57,29 +58,31 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
 
     @Override
     public void write(CompoundTag nbt, DimensionPalette dimensions) {
-        super.write(nbt, dimensions);
-        nbt.putBoolean("Bound",belong!=null);
-        if(belong!=null){
-            nbt.putUUID("StationID",belong.getFirst());
-            nbt.putUUID("PlatformID",belong.getSecond());
+        super.write(nbt, dimensions);;
+        nbt.putUUID("ID",id);
+        nbt.putString("Name",name);
+        if(station !=null){
+            nbt.putUUID("StationID", station);
         }
     }
 
     @Override
     public void write(FriendlyByteBuf buffer, DimensionPalette dimensions) {
         super.write(buffer, dimensions);
+        buffer.writeUUID(id);
+        buffer.writeUtf(name);
+        buffer.writeBoolean(station != null);
+        if(station != null)
+            buffer.writeUUID(station);
         buffer.writeBoolean(tilePos != null);
         if (tilePos != null)
             buffer.writeBlockPos(tilePos);
-        buffer.writeBoolean(belong == null);
+
     }
 
-    private void fetchPlatform(){
-        // TODO
-    }
-
-    private boolean stationValid(){
-        // TODO
+    @Override
+    public UUID getId() {
+        return id;
     }
 
     public void reserveFor(Train train) {
@@ -127,8 +130,4 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
         return this.nearestTrain.get();
     }
 
-    @Nullable
-    public TransitStation.Platform getPlatform() {
-        return this.platform.get();
-    }
 }

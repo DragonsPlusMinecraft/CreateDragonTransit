@@ -22,11 +22,6 @@ import java.util.*;
 /**
  * A Transit Manager holding and handling all transit lines & transit stations. <br><br>
  *
- * {@link TransitStation} and {@link TransitLine} are merely data structures for holding information,
- * thus any direct editing on them will not be synced automatically
- * and any bind & unbind action between {@link TransitStation.Platform} & {@link TransitLine.Segment}
- * does not affect corresponding target (bind & unbind action should be done in both side).<br><br>
- *
  * Please use {@link #syncLine(TransitLine)} and {@link #syncStation(TransitStation)} after direct editing.
  * For other creation/deletion/binding/unbinding actions, please use methods in {@link TransitNetworkManager} and manual syncing is not required.
  */
@@ -62,15 +57,6 @@ public class TransitNetworkManager {
         return station.getId();
     }
 
-    @Nullable
-    public UUID createStationPlatform(UUID stationID){
-        var station = network.stations.get(stationID);
-        if(station==null) return null;
-        var platform = station.createPlatform();
-        markDirty();
-        return platform.getId();
-    }
-
     public boolean deleteLine(UUID id){
         if(network.lines.remove(id)!=null) {
             markDirty();
@@ -97,16 +83,6 @@ public class TransitNetworkManager {
         return false;
     }
 
-    public boolean deleteStationPlatform(UUID stationID, UUID id){
-        var station = network.stations.get(stationID);
-        if(station==null) return false;
-        if(station.removePlatform(id)!=null){
-            markDirty();
-            return true;
-        }
-        return false;
-    }
-
     public boolean bindPlatformTo(UUID stationID, UUID platformID, UUID lineID, UUID segmentID){
         var line = network.lines.get(lineID);
         if(line==null) return false;
@@ -114,9 +90,8 @@ public class TransitNetworkManager {
         if(segment==null) return false;
         var station = network.stations.get(stationID);
         if(station==null) return false;
-        var platform = station.getPlatform(platformID);
-        if(platform==null) return false;
-        if(segment.attachPlatform(stationID,platformID) && platform.bindLineSegment(lineID,segmentID)){
+        if(!station.containsPlatform(platformID)) return false;
+        if(segment.attachPlatform(stationID,platformID)){
             markDirty();
             return true;
         }
@@ -130,13 +105,25 @@ public class TransitNetworkManager {
         if(segment==null) return false;
         var station = network.stations.get(stationID);
         if(station==null) return false;
-        var platform = station.getPlatform(platformID);
-        if(platform==null) return false;
-        if(segment.detachPlatform(stationID,platformID) && platform.unbindLineSegment(lineID,segmentID)){
+        if(!station.containsPlatform(platformID)) return false;
+        if(segment.detachPlatform(stationID,platformID)){
             markDirty();
             return true;
         }
         return false;
+    }
+
+    public boolean addPlatformToStation(UUID stationID, UUID platformID){
+        var station = network.stations.get(stationID);
+        if(station==null) return false;
+        station.addPlatform(platformID);
+        return true;
+    }
+
+    public boolean removePlatformToStation(UUID stationID, UUID platformID){
+        var station = network.stations.get(stationID);
+        if(station==null) return false;
+        return station.removePlatform(platformID);
     }
 
     public void syncStation(TransitStation station){
