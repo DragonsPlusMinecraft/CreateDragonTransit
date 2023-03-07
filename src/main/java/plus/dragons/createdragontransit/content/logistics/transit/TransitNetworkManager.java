@@ -15,7 +15,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 import plus.dragons.createdragontransit.DragonTransit;
 import plus.dragons.createdragontransit.DragonTransitClient;
-import plus.dragons.createdragontransit.entry.CtrPackets;
+import plus.dragons.createdragontransit.entry.CdtPackets;
 
 import java.util.*;
 
@@ -128,13 +128,13 @@ public class TransitNetworkManager {
 
     public void syncStation(TransitStation station){
         var packet = TransitNetworkSyncPacket.updateStation(station);
-        CtrPackets.channel.send(PacketDistributor.ALL.noArg(), packet);
+        CdtPackets.channel.send(PacketDistributor.ALL.noArg(), packet);
         markDirty();
     }
 
     public void syncLine(TransitLine line){
         var packet = TransitNetworkSyncPacket.updateLine(line);
-        CtrPackets.channel.send(PacketDistributor.ALL.noArg(), packet);
+        CdtPackets.channel.send(PacketDistributor.ALL.noArg(), packet);
         markDirty();
     }
 
@@ -146,7 +146,7 @@ public class TransitNetworkManager {
             CompoundTag tag = new CompoundTag();
             manager.network.save(tag);
             var packet = new TransitNetworkInitializePacket(tag);
-            CtrPackets.channel.send(PacketDistributor.PLAYER.with(() -> serverPlayer), packet);
+            CdtPackets.channel.send(PacketDistributor.PLAYER.with(() -> serverPlayer), packet);
         }
     }
 

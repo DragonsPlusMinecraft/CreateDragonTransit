@@ -1,7 +1,7 @@
 {
   "required": true,
   "priority": 1100,
-  "package": "plus.dragons.createdragontransit.mixin",
+  "package": "plus.dragons.createdragontransit.foundation.mixin",
   "compatibilityLevel": "JAVA_16",
   "refmap": "create_dragon_transit.refmap.json",
   "mixins": [],

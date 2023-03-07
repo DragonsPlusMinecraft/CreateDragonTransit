@@ -15,7 +15,7 @@ import plus.dragons.createdragontransit.content.logistics.transit.management.edg
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 import static plus.dragons.createdragontransit.DragonTransit.REGISTRATE;
 
-public class CtrBlocks {
+public class CdtBlocks {
 
     static {
         REGISTRATE.creativeModeTab(() -> Create.BASE_CREATIVE_TAB).startSection(AllSections.LOGISTICS);

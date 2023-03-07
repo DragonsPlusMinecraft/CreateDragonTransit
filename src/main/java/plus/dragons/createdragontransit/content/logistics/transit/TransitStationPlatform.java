@@ -14,7 +14,7 @@ import java.util.UUID;
 public class TransitStationPlatform extends SingleTileEdgePoint {
 
     private UUID id;
-    public String name;
+    public String code;
     public WeakReference<Train> nearestTrain;
     @Nullable
     public UUID station;
@@ -22,7 +22,7 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
 
     public TransitStationPlatform() {
         id = UUID.randomUUID();
-        name = "Unnamed Platform";
+        code = "None";
         station = null;
         nearestTrain = new WeakReference<>(null);
     }
@@ -37,7 +37,7 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     public void read(CompoundTag nbt, boolean migration, DimensionPalette dimensions) {
         super.read(nbt, migration, dimensions);
         id = nbt.getUUID("ID");
-        name = nbt.getString("Name");
+        code = nbt.getString("Code");
         station = nbt.contains("StationID")? nbt.getUUID("StationID"): null;
         nearestTrain = new WeakReference<>(null);
     }
@@ -48,7 +48,7 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     public void read(FriendlyByteBuf buffer, DimensionPalette dimensions) {
         super.read(buffer, dimensions);
         id = buffer.readUUID();
-        name = buffer.readUtf();
+        code = buffer.readUtf();
         if(buffer.readBoolean()){
             station = buffer.readUUID();
         }
@@ -60,7 +60,7 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     public void write(CompoundTag nbt, DimensionPalette dimensions) {
         super.write(nbt, dimensions);;
         nbt.putUUID("ID",id);
-        nbt.putString("Name",name);
+        nbt.putString("Code", code);
         if(station !=null){
             nbt.putUUID("StationID", station);
         }
@@ -70,7 +70,7 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     public void write(FriendlyByteBuf buffer, DimensionPalette dimensions) {
         super.write(buffer, dimensions);
         buffer.writeUUID(id);
-        buffer.writeUtf(name);
+        buffer.writeUtf(code);
         buffer.writeBoolean(station != null);
         if(station != null)
             buffer.writeUUID(station);
@@ -85,12 +85,14 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
         return id;
     }
 
-    public void reserveFor(Train train) {
+    // Heavily TODO
+    /*public void reserveFor(Train train) {
         Train nearestTrain = getNearestTrain();
         if (nearestTrain == null
                 || nearestTrain.navigation.distanceToDestination > train.navigation.distanceToDestination)
             this.nearestTrain = new WeakReference<>(train);
     }
+
 
     public void cancelReservation(Train train) {
         if (nearestTrain.get() == train)
@@ -128,6 +130,6 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     @Nullable
     public Train getNearestTrain() {
         return this.nearestTrain.get();
-    }
+    }*/
 
 }

@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 import static net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT;
 
-public enum CtrPackets {
+public enum CdtPackets {
     TRANSIT_NETWORK_INI(TransitNetworkInitializePacket.class, TransitNetworkInitializePacket::new, PLAY_TO_CLIENT, LoadedPacket.ConsumeThread.MAIN),
     TRANSIT_NETWORK_SYNC(TransitNetworkSyncPacket.class, TransitNetworkSyncPacket::new, PLAY_TO_CLIENT, LoadedPacket.ConsumeThread.NETWORK);
     public static final ResourceLocation CHANNEL_NAME = DragonTransit.genRL("main");
@@ -28,11 +28,11 @@ public enum CtrPackets {
     public static final String NETWORK_VERSION_STR = String.valueOf(NETWORK_VERSION);
     public static SimpleChannel channel;
 
-    private CtrPackets.LoadedPacket<?> packet;
+    private CdtPackets.LoadedPacket<?> packet;
 
-    <T extends SimplePacketBase> CtrPackets(Class<T> type, Function<FriendlyByteBuf, T> factory,
+    <T extends SimplePacketBase> CdtPackets(Class<T> type, Function<FriendlyByteBuf, T> factory,
                                             NetworkDirection direction, LoadedPacket.ConsumeThread consumeThread) {
-        packet = new CtrPackets.LoadedPacket<>(type, factory, direction, consumeThread);
+        packet = new CdtPackets.LoadedPacket<>(type, factory, direction, consumeThread);
     }
 
     public static void registerPackets() {
@@ -41,7 +41,7 @@ public enum CtrPackets {
                 .clientAcceptedVersions(NETWORK_VERSION_STR::equals)
                 .networkProtocolVersion(() -> NETWORK_VERSION_STR)
                 .simpleChannel();
-        for (CtrPackets packet : values())
+        for (CdtPackets packet : values())
             packet.packet.register();
     }
 

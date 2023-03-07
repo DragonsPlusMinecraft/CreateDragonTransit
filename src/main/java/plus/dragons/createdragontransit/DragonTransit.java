@@ -9,6 +9,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -17,9 +18,10 @@ import plus.dragons.createdragonlib.init.SafeRegistrate;
 import plus.dragons.createdragonlib.lang.Lang;
 import plus.dragons.createdragontransit.content.logistics.transit.TransitNetworkManager;
 import plus.dragons.createdragontransit.content.logistics.transit.TransitStationPlatform;
-import plus.dragons.createdragontransit.entry.CtrBlockEntities;
-import plus.dragons.createdragontransit.entry.CtrBlocks;
-import plus.dragons.createdragontransit.entry.CtrPackets;
+import plus.dragons.createdragontransit.entry.CdtBlockEntities;
+import plus.dragons.createdragontransit.entry.CdtBlocks;
+import plus.dragons.createdragontransit.entry.CdtPackets;
+import plus.dragons.createdragontransit.foundation.config.CdtConfigs;
 
 @Mod(DragonTransit.ID)
 public class DragonTransit
@@ -38,6 +40,7 @@ public class DragonTransit
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
 
+        CdtConfigs.register(ModLoadingContext.get());
 
         registerEntries(modEventBus);
         modEventBus.addListener(DragonTransit::setup);
@@ -47,8 +50,8 @@ public class DragonTransit
 
     private void registerEntries(IEventBus modEventBus) {
         REGISTRATE.registerEventListeners(modEventBus);
-        CtrBlocks.register();
-        CtrBlockEntities.register();
+        CdtBlocks.register();
+        CdtBlockEntities.register();
     }
 
     private void registerTransitRouteManagerEvent(IEventBus forgeEventBus) {
@@ -59,7 +62,7 @@ public class DragonTransit
     @SubscribeEvent
     public static void setup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            CtrPackets.registerPackets();
+            CdtPackets.registerPackets();
         });
     }
 

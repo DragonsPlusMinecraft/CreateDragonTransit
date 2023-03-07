@@ -7,7 +7,7 @@ import plus.dragons.createdragontransit.content.logistics.transit.management.edg
 
 import static plus.dragons.createdragontransit.DragonTransit.REGISTRATE;
 
-public class CtrBlockEntities {
+public class CdtBlockEntities {
 
     public static final BlockEntityEntry<TransitStationPlatformBlockEntity> TRANSIT_STATION_PLATFORM = REGISTRATE
             .tileEntity("transit_station_platform", TransitStationPlatformBlockEntity::new)
