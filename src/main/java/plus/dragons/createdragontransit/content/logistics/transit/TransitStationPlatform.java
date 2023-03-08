@@ -13,7 +13,6 @@ import java.util.UUID;
 
 public class TransitStationPlatform extends SingleTileEdgePoint {
 
-    private UUID id;
     public String code;
     public WeakReference<Train> nearestTrain;
     @Nullable
@@ -21,7 +20,6 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
 
 
     public TransitStationPlatform() {
-        id = UUID.randomUUID();
         code = "None";
         station = null;
         nearestTrain = new WeakReference<>(null);
@@ -30,13 +28,11 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     @Override
     public void tileAdded(BlockEntity tile, boolean front) {
         super.tileAdded(tile, front);
-        // TODO
     }
 
     @Override
     public void read(CompoundTag nbt, boolean migration, DimensionPalette dimensions) {
         super.read(nbt, migration, dimensions);
-        id = nbt.getUUID("ID");
         code = nbt.getString("Code");
         station = nbt.contains("StationID")? nbt.getUUID("StationID"): null;
         nearestTrain = new WeakReference<>(null);
@@ -47,7 +43,6 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     @Override
     public void read(FriendlyByteBuf buffer, DimensionPalette dimensions) {
         super.read(buffer, dimensions);
-        id = buffer.readUUID();
         code = buffer.readUtf();
         if(buffer.readBoolean()){
             station = buffer.readUUID();
@@ -59,7 +54,6 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     @Override
     public void write(CompoundTag nbt, DimensionPalette dimensions) {
         super.write(nbt, dimensions);;
-        nbt.putUUID("ID",id);
         nbt.putString("Code", code);
         if(station !=null){
             nbt.putUUID("StationID", station);
@@ -69,7 +63,6 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     @Override
     public void write(FriendlyByteBuf buffer, DimensionPalette dimensions) {
         super.write(buffer, dimensions);
-        buffer.writeUUID(id);
         buffer.writeUtf(code);
         buffer.writeBoolean(station != null);
         if(station != null)
@@ -80,10 +73,6 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
 
     }
 
-    @Override
-    public UUID getId() {
-        return id;
-    }
 
     // Heavily TODO
     /*public void reserveFor(Train train) {

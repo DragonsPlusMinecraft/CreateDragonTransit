@@ -27,11 +27,11 @@ public class CdtBlocks {
             .properties(p -> p.color(MaterialColor.PODZOL))
             .properties(p -> p.sound(SoundType.NETHERITE_BLOCK))
             .transform(TagGen.pickaxeOnly())
-            .blockstate((ctx, pov) -> pov.simpleBlock(ctx.get(), AssetLookup.standardModel(ctx, pov)))
+            .blockstate((c, p) -> p.simpleBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
             .item(TrackTargetingBlockItem.ofType(DragonTransit.PLATFORM))
             .transform(customItemModel())
             .register();
 
-    public static void register() {};
+    public static void register() {}
 
 }

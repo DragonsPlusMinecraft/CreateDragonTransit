@@ -6,6 +6,7 @@ import com.simibubi.create.content.logistics.trains.management.edgePoint.TrackTa
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import plus.dragons.createdragontransit.DragonTransit;
@@ -22,12 +23,22 @@ public class TransitStationPlatformBlockEntity extends SmartTileEntity implement
     }
 
     @Override
-    public void transform(StructureTransform transform) {
-        edgePoint.transform(transform);
+    public void addBehaviours(List<TileEntityBehaviour> behaviours) {
+        behaviours.add(edgePoint = new TrackTargetingBehaviour<>(this, DragonTransit.PLATFORM));
     }
 
     @Override
-    public void addBehaviours(List<TileEntityBehaviour> behaviours) {
-        behaviours.add(edgePoint = new TrackTargetingBehaviour<>(this, DragonTransit.PLATFORM));
+    protected void write(CompoundTag tag, boolean clientPacket) {
+        super.write(tag, clientPacket);
+    }
+
+    @Override
+    protected void read(CompoundTag tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
+    }
+
+    @Override
+    public void transform(StructureTransform transform) {
+        edgePoint.transform(transform);
     }
 }

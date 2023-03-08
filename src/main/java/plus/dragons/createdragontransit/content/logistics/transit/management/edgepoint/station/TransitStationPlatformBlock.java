@@ -2,20 +2,14 @@ package plus.dragons.createdragontransit.content.logistics.transit.management.ed
 
 import com.simibubi.create.AllItems;
 import com.simibubi.create.AllShapes;
-import com.simibubi.create.AllTileEntities;
 import com.simibubi.create.content.contraptions.wrench.IWrenchable;
-import com.simibubi.create.content.logistics.block.depot.SharedDepotBlockMethods;
-import com.simibubi.create.content.logistics.trains.management.edgePoint.station.*;
 import com.simibubi.create.foundation.advancement.AdvancementBehaviour;
 import com.simibubi.create.foundation.block.ITE;
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
-import com.simibubi.create.foundation.gui.ScreenOpener;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -28,25 +22,23 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
+import plus.dragons.createdragontransit.entry.CdtBlockEntities;
 
 public class TransitStationPlatformBlock extends Block implements ITE<TransitStationPlatformBlockEntity>, IWrenchable, ProperWaterloggedBlock {
 
     public TransitStationPlatformBlock(Properties pProperties) {
         super(pProperties);
+        registerDefaultState(defaultBlockState().setValue(WATERLOGGED, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
-
+        super.createBlockStateDefinition(pBuilder.add(WATERLOGGED));
     }
 
     @Override
@@ -87,12 +79,6 @@ public class TransitStationPlatformBlock extends Block implements ITE<TransitSta
     @Override
     public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         ITE.onRemove(state, worldIn, pos, newState);
-    }
-
-    @Override
-    public void updateEntityAfterFallOn(BlockGetter worldIn, Entity entityIn) {
-        super.updateEntityAfterFallOn(worldIn, entityIn);
-        SharedDepotBlockMethods.onLanded(worldIn, entityIn);
     }
 
     @Override
@@ -157,7 +143,7 @@ public class TransitStationPlatformBlock extends Block implements ITE<TransitSta
 
     @Override
     public BlockEntityType<? extends TransitStationPlatformBlockEntity> getTileEntityType() {
-        return AllTileEntities.TRACK_STATION.get();
+        return CdtBlockEntities.TRANSIT_STATION_PLATFORM.get();
     }
 
     @Override

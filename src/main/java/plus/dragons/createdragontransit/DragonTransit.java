@@ -44,7 +44,7 @@ public class DragonTransit
 
         registerEntries(modEventBus);
         modEventBus.addListener(DragonTransit::setup);
-        registerTransitRouteManagerEvent(forgeEventBus);
+        registerTransitNetworkManagerEvent(forgeEventBus);
         DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> DragonTransitClient::new);
     }
 
@@ -54,7 +54,7 @@ public class DragonTransit
         CdtBlockEntities.register();
     }
 
-    private void registerTransitRouteManagerEvent(IEventBus forgeEventBus) {
+    private void registerTransitNetworkManagerEvent(IEventBus forgeEventBus) {
         forgeEventBus.addListener(TransitNetworkManager::playerLoggedIn);
         forgeEventBus.addListener(TransitNetworkManager::onLoadWorld);
     }
