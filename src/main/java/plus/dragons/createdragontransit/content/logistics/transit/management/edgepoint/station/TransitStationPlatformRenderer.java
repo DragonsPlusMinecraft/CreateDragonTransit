@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.tileEntity.renderer.SafeTileEntityRenderer
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 
+// TODO
 public class TransitStationPlatformRenderer extends SafeTileEntityRenderer<TransitStationPlatformBlockEntity> {
 
     public TransitStationPlatformRenderer(BlockEntityRendererProvider.Context context) {}

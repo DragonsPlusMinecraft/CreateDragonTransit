@@ -1,6 +1,7 @@
 package plus.dragons.createdragontransit.content.logistics.transit;
 
 import com.mojang.logging.LogUtils;
+import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.NBTHelper;
 import com.simibubi.create.foundation.utility.Pair;
 import net.minecraft.nbt.CompoundTag;
@@ -14,7 +15,7 @@ import java.util.*;
 public class TransitLine {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final UUID id;
-    private final Pair<String,String> names;
+    private final Couple<String> names;
     private String code;
     private String color;
     private final Map<UUID,Segment> segments;
@@ -23,7 +24,7 @@ public class TransitLine {
 
     public TransitLine(UUID owner) {
         this.id = UUID.randomUUID();
-        this.names = Pair.of("New Line","");
+        this.names = Couple.create("New Line","");
         this.code = "";
         var random = new Random();
         char[] hex = { '0', '1', '2', '3', '4', '5', '6', '7',
@@ -43,7 +44,7 @@ public class TransitLine {
 
     private TransitLine(UUID id, String name, String translatedName, String code, String color, UUID owner, Ownership ownership) {
         this.id = id;
-        this.names = Pair.of(name,translatedName);
+        this.names = Couple.create(name,translatedName);
         this.code = code;
         this.color = color;
         this.segments = new HashMap<>();
@@ -85,9 +86,9 @@ public class TransitLine {
 
     Segment createSegmentFromTag(CompoundTag tag){
         var id = tag.getUUID("Id");
-        var names = Pair.of(tag.getString("Name"),tag.getString("TranslatedName"));
+        var names = Couple.create(tag.getString("Name"),tag.getString("TranslatedName"));
         var stations = NBTHelper.readCompoundList(tag.getList("Stations", Tag.TAG_COMPOUND),
-                compoundTag -> Pair.of(compoundTag.getUUID("ID"),compoundTag.getUUID("Platform")));
+                compoundTag -> Couple.create(compoundTag.getUUID("ID"),compoundTag.getUUID("Platform")));
         var maintaining = tag.getBoolean("Maintaining");
         var emergency = tag.getBoolean("Emergency");
         return new Segment(id,names,stations,maintaining,emergency);
@@ -174,20 +175,20 @@ public class TransitLine {
 
     public class Segment{
         private final UUID id;
-        private final Pair<String,String> names;
-        private final List<Pair<UUID,UUID>> stations;
+        private final Couple<String> names;
+        private final List<Couple<UUID>> stations;
         private boolean maintaining;
         private boolean emergency;
 
         private Segment(String name) {
             this.id = UUID.randomUUID();
-            this.names = Pair.of(name,"");
+            this.names = Couple.create(name,"");
             this.stations = new ArrayList<>();
             this.maintaining = true;
             this.emergency = false;
         }
 
-        public Segment(UUID id, Pair<String, String> names, List<Pair<UUID, UUID>> stations, boolean maintaining, boolean emergency) {
+        public Segment(UUID id, Couple<String> names, List<Couple<UUID>> stations, boolean maintaining, boolean emergency) {
             this.id = id;
             this.names = names;
             this.stations = stations;
@@ -196,15 +197,15 @@ public class TransitLine {
         }
 
         public boolean attachPlatform(UUID stationID, UUID platformID){
-            if(stations.contains(Pair.of(stationID,platformID)))
+            if(stations.contains(Couple.create(stationID,platformID)))
                 return false;
-            this.stations.add(Pair.of(stationID,platformID));
+            this.stations.add(Couple.create(stationID,platformID));
             return true;
         }
 
         public boolean detachPlatform(UUID stationID, UUID platformID){
-            if(stations.contains(Pair.of(stationID,platformID))){
-                stations.removeIf(pair -> platformID.equals(pair.getSecond()));
+            if(stations.contains(Couple.create(stationID,platformID))){
+                stations.removeIf(couple -> platformID.equals(couple.getSecond()));
                 return true;
             }
             return false;

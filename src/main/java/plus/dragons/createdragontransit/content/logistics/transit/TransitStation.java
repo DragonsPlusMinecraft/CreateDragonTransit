@@ -1,6 +1,7 @@
 package plus.dragons.createdragontransit.content.logistics.transit;
 
 import com.mojang.logging.LogUtils;
+import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.NBTHelper;
 import com.simibubi.create.foundation.utility.Pair;
 import net.minecraft.nbt.CompoundTag;
@@ -14,14 +15,14 @@ import java.util.stream.Collectors;
 public class TransitStation {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final UUID id;
-    private final Pair<String,String> names;
+    private final Couple<String> names;
     private final List<Pair<UUID,Boolean>> platforms;
     private final UUID owner;
     private boolean isPrivate;
 
     public TransitStation(UUID owner) {
         this.id = UUID.randomUUID();
-        this.names = Pair.of("New Station","");
+        this.names = Couple.create("New Station","");
         this.platforms = new ArrayList<>();
         this.owner = owner;
         this.isPrivate = true;
@@ -29,7 +30,7 @@ public class TransitStation {
 
     private TransitStation(UUID id, String name, String translatedName, UUID owner, boolean isPrivate) {
         this.id = id;
-        this.names = Pair.of(name,translatedName);
+        this.names = Couple.create(name,translatedName);
         this.platforms = new ArrayList<>();
         this.owner = owner;
         this.isPrivate = isPrivate;

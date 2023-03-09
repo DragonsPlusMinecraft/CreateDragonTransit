@@ -3,9 +3,12 @@ package plus.dragons.createdragontransit.content.logistics.transit;
 import com.simibubi.create.content.logistics.trains.DimensionPalette;
 import com.simibubi.create.content.logistics.trains.entity.Train;
 import com.simibubi.create.content.logistics.trains.management.edgePoint.signal.SingleTileEdgePoint;
+import com.simibubi.create.foundation.utility.Couple;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import plus.dragons.createdragontransit.DragonTransit;
 
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
@@ -17,12 +20,15 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     public WeakReference<Train> nearestTrain;
     @Nullable
     public UUID station;
+    @Nullable
+    public Couple<UUID> line;
 
 
     public TransitStationPlatform() {
         code = "None";
         station = null;
         nearestTrain = new WeakReference<>(null);
+        line = null;
     }
 
     @Override
@@ -36,6 +42,7 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
         code = nbt.getString("Code");
         station = nbt.contains("StationID")? nbt.getUUID("StationID"): null;
         nearestTrain = new WeakReference<>(null);
+        line = nbt.contains("LineID")? Couple.create(nbt.getUUID("LineID"),nbt.getUUID("SegmentID")): null;
     }
 
 
@@ -47,6 +54,8 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
         if(buffer.readBoolean()){
             station = buffer.readUUID();
         }
+        if(buffer.readBoolean())
+            line = Couple.create(buffer.readUUID(),buffer.readUUID());
         if (buffer.readBoolean())
             tilePos = buffer.readBlockPos();
     }
@@ -58,6 +67,10 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
         if(station !=null){
             nbt.putUUID("StationID", station);
         }
+        if(line !=null){
+            nbt.putUUID("LineID", line.getFirst());
+            nbt.putUUID("SegmentID", line.getSecond());
+        }
     }
 
     @Override
@@ -67,10 +80,26 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
         buffer.writeBoolean(station != null);
         if(station != null)
             buffer.writeUUID(station);
+        buffer.writeBoolean(line != null);
+        if(line != null){
+            buffer.writeUUID(line.getFirst());
+            buffer.writeUUID(line.getSecond());
+        }
         buffer.writeBoolean(tilePos != null);
         if (tilePos != null)
             buffer.writeBlockPos(tilePos);
 
+    }
+
+    @Override
+    public void tileRemoved(BlockPos tilePos, boolean front) {
+        super.tileRemoved(tilePos,front);
+        // remove from station and notify line if needed
+        if(station!=null)
+            DragonTransit.ROUTES.removePlatformFromStation(station,this.getId());
+        if(line!=null){
+            // TODO
+        }
     }
 
 

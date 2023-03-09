@@ -91,9 +91,10 @@ public class TransitStationPlatformBlock extends Block implements ITE<TransitSta
         if (AllItems.WRENCH.isIn(itemInHand))
             return InteractionResult.PASS;
 
+        // TODO
+        /*
         if (itemInHand.getItem() == Items.FILLED_MAP) {
-            // TODO
-            /*return onTileEntityUse(pLevel, pPos, station -> {
+            return onTileEntityUse(pLevel, pPos, station -> {
                 if (pLevel.isClientSide)
                     return InteractionResult.SUCCESS;
 
@@ -108,8 +109,8 @@ public class TransitStationPlatformBlock extends Block implements ITE<TransitSta
                     return InteractionResult.FAIL;
 
                 return InteractionResult.SUCCESS;
-            });*/
-        }
+            });
+        }*/
 
         /*DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
                 () -> () -> withTileEntityDo(pLevel, pPos, te -> this.displayScreen(te, pPlayer)));*/

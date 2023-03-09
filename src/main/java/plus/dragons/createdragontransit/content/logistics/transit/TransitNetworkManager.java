@@ -83,7 +83,7 @@ public class TransitNetworkManager {
         return false;
     }
 
-    public boolean bindPlatformTo(UUID stationID, UUID platformID, UUID lineID, UUID segmentID){
+    private boolean bindPlatformTo(UUID stationID, UUID platformID, UUID lineID, UUID segmentID){
         var line = network.lines.get(lineID);
         if(line==null) return false;
         var segment = line.getSegment(segmentID);
@@ -98,7 +98,7 @@ public class TransitNetworkManager {
         return false;
     }
 
-    public boolean unbindPlatformTo(UUID stationID, UUID platformID, UUID lineID, UUID segmentID){
+    private boolean unbindPlatformTo(UUID stationID, UUID platformID, UUID lineID, UUID segmentID){
         var line = network.lines.get(lineID);
         if(line==null) return false;
         var segment = line.getSegment(segmentID);
@@ -117,13 +117,18 @@ public class TransitNetworkManager {
         var station = network.stations.get(stationID);
         if(station==null) return false;
         station.addPlatform(platformID);
+        syncStation(station);
         return true;
     }
 
-    public boolean removePlatformToStation(UUID stationID, UUID platformID){
+    public boolean removePlatformFromStation(UUID stationID, UUID platformID){
         var station = network.stations.get(stationID);
         if(station==null) return false;
-        return station.removePlatform(platformID);
+        if(station.removePlatform(platformID)){
+            syncStation(station);
+            return true;
+        }
+        return false;
     }
 
     public void syncStation(TransitStation station){
