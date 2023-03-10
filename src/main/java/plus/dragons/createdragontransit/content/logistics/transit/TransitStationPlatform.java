@@ -94,12 +94,13 @@ public class TransitStationPlatform extends SingleTileEdgePoint {
     @Override
     public void tileRemoved(BlockPos tilePos, boolean front) {
         super.tileRemoved(tilePos,front);
-        // remove from station and notify line if needed
+        // remove from station and unbind line if needed. must unbind line first.
+        if(line!=null){
+            DragonTransit.ROUTES.unbindPlatformFromLineSegment(station,this.getId(),line.getFirst(),line.getSecond());
+        }
         if(station!=null)
             DragonTransit.ROUTES.removePlatformFromStation(station,this.getId());
-        if(line!=null){
-            // TODO
-        }
+
     }
 
 

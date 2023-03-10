@@ -20,9 +20,9 @@ public class TransitStation {
     private final UUID owner;
     private boolean isPrivate;
 
-    public TransitStation(UUID owner) {
+    public TransitStation(String name, String translatedName, UUID owner) {
         this.id = UUID.randomUUID();
-        this.names = Couple.create("New Station","");
+        this.names = Couple.create(name,translatedName);
         this.platforms = new ArrayList<>();
         this.owner = owner;
         this.isPrivate = true;

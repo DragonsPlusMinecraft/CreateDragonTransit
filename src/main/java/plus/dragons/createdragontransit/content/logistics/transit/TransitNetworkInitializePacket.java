@@ -8,7 +8,7 @@ import plus.dragons.createdragontransit.DragonTransitClient;
 
 import java.util.function.Supplier;
 
-public class TransitNetworkInitializePacket  extends SimplePacketBase {
+public class TransitNetworkInitializePacket extends SimplePacketBase {
     CompoundTag nbt;
 
     public TransitNetworkInitializePacket(CompoundTag networkNBT) {

@@ -104,7 +104,7 @@ public class TransitLine {
         return segments.get(segmentID);
     }
 
-
+    @Nullable
     Segment removeSegment(UUID segmentID){
         return segments.remove(segmentID);
     }
