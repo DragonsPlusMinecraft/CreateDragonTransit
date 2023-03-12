@@ -3,7 +3,6 @@ package plus.dragons.createdragontransit.content.logistics.transit.management.ed
 import com.jozufozu.flywheel.util.transform.TransformStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.gui.AbstractSimiScreen;
-import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.gui.element.GuiGameElement;
 import com.simibubi.create.foundation.gui.widget.IconButton;
 import com.simibubi.create.foundation.gui.widget.Indicator;
@@ -12,10 +11,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import plus.dragons.createdragontransit.content.logistics.transit.ClientRefreshable;
 import plus.dragons.createdragontransit.content.logistics.transit.TransitStationPlatform;
+import plus.dragons.createdragontransit.foundation.gui.CdtGuiTextures;
 
 public abstract class PlatformAbstractScreen extends AbstractSimiScreen implements ClientRefreshable {
 
-    protected AllGuiTextures background;
+    protected CdtGuiTextures background;
     protected final TransitStationPlatformBlockEntity be;
     protected final TransitStationPlatform platform;
     private EditBox nameBox;

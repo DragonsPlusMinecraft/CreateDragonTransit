@@ -22,6 +22,8 @@ public abstract class PlatformEditingScreen extends PlatformAbstractScreen {
         super(be,platform);
     }
 
+
+
     @Override
     public void clientRefresh() {
         // TODO
